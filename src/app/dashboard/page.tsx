@@ -1,3 +1,5 @@
+import LogoutButton from "@/components/LogoutButton"
+
 export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-gray-50 p-6">
@@ -21,6 +23,10 @@ export default function DashboardPage() {
             <p className="mt-2 text-3xl font-bold">78%</p>
           </div>
         </section>
+
+        <div className="mt-6">
+          <LogoutButton />
+        </div>
       </div>
     </main>
   )
