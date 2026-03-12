@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation"
 import { auth } from "../../../auth"
 import { prisma } from "../../../lib/prisma"
 import FlashCardForm from "./FlashCardForm"
+import FlashCardItem from "./FlashCardItem"
 
 type DeckDetailPageProps = {
   params: Promise<{
@@ -69,9 +70,6 @@ export default async function DeckDetailPage({
               <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
                 {deck.name}
               </h1>
-              <p className="mt-3 text-sm text-gray-500">
-                作成日: {new Date(deck.createdAt).toLocaleDateString("ja-JP")}
-              </p>
             </div>
 
             <div className="flex gap-3">
@@ -129,45 +127,23 @@ export default async function DeckDetailPage({
               </div>
             ) : (
               <div className="mt-6 overflow-hidden rounded-2xl border border-gray-200">
-                <div className="hidden grid-cols-[1.2fr_1.2fr_120px] bg-gray-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 md:grid">
+                <div className="hidden grid-cols-[1.2fr_1.2fr_140px] bg-gray-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 md:grid">
                   <p>Question</p>
                   <p>Answer</p>
-                  <p className="text-right">Created</p>
+                  <p className="text-right">Actions</p>
                 </div>
 
                 <div className="divide-y divide-gray-200">
                   {deck.flashcards.map((card) => (
-                    <div
+                    <FlashCardItem
                       key={card.id}
-                      className="grid gap-4 px-5 py-4 md:grid-cols-[1.2fr_1.2fr_120px] md:items-start"
-                    >
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 md:hidden">
-                          Question
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-gray-900 md:mt-0">
-                          {card.question}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 md:hidden">
-                          Answer
-                        </p>
-                        <p className="mt-1 text-sm text-gray-700 md:mt-0">
-                          {card.answer}
-                        </p>
-                      </div>
-
-                      <div className="text-left md:text-right">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 md:hidden">
-                          Created
-                        </p>
-                        <p className="mt-1 text-xs text-gray-500 md:mt-0">
-                          {new Date(card.createdAt).toLocaleDateString("ja-JP")}
-                        </p>
-                      </div>
-                    </div>
+                      deckId={deck.id}
+                      card={{
+                        id: card.id,
+                        question: card.question,
+                        answer: card.answer,
+                      }}
+                    />
                   ))}
                 </div>
               </div>
