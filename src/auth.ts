@@ -5,7 +5,7 @@ import { prisma } from "./lib/prisma"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
-    strategy: "jwt",
+    strategy: "jwt", // JSON Web Tokenを使用してセッション管理
   },
   providers: [
     Credentials({
