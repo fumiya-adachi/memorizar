@@ -1,13 +1,26 @@
-export default function SignupPage() {
+import Link from "next/link"
+
+import { signup } from "./actions"
+
+type SignupPageProps = {
+  searchParams?: Promise<{ error?: string }>
+}
+
+export default async function SignupPage({ searchParams }: SignupPageProps) {
+  const params = (await searchParams) ?? {}
+  const errorMessage = params.error
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow">
         <h1 className="text-2xl font-bold text-gray-900">新規登録</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          アカウントを作成してください
-        </p>
+        <p className="mt-2 text-sm text-gray-600">アカウントを作成してください</p>
 
-        <form className="mt-6 space-y-4">
+        {errorMessage ? (
+          <p className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{errorMessage}</p>
+        ) : null}
+
+        <form action={signup} className="mt-6 space-y-4">
           <div>
             <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
               名前
@@ -29,6 +42,7 @@ export default function SignupPage() {
               id="email"
               name="email"
               type="email"
+              required
               className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none focus:border-gray-900"
               placeholder="you@example.com"
             />
@@ -42,6 +56,8 @@ export default function SignupPage() {
               id="password"
               name="password"
               type="password"
+              required
+              minLength={8}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none focus:border-gray-900"
               placeholder="8文字以上"
             />
@@ -57,9 +73,9 @@ export default function SignupPage() {
 
         <p className="mt-6 text-sm text-gray-600">
           すでにアカウントをお持ちですか？{" "}
-          <a href="/login" className="font-medium text-gray-900 underline">
+          <Link href="/login" className="font-medium text-gray-900 underline">
             ログイン
-          </a>
+          </Link>
         </p>
       </div>
     </main>
