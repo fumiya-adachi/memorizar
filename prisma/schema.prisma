@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
@@ -14,20 +14,35 @@ model User {
   name      String?
   createdAt DateTime @default(now())
 
+  decks      Deck[]
   flashcards FlashCard[]
   progress   FlashCardProgress[]
   history    ReviewHistory[]
 }
 
+model Deck {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id])
+  flashcards FlashCard[]
+
+  @@unique([userId, name])
+}
+
 model FlashCard {
   id        Int      @id @default(autoincrement())
   userId    Int
+  deckId    Int
   question  String
   answer    String
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
-
+  user     User                @relation(fields: [userId], references: [id])
+  deck     Deck                @relation(fields: [deckId], references: [id])
   progress FlashCardProgress[]
   history  ReviewHistory[]
 }
@@ -40,7 +55,7 @@ model FlashCardProgress {
   wrongCount   Int       @default(0)
   nextReview   DateTime?
 
-  user User @relation(fields: [userId], references: [id])
+  user User      @relation(fields: [userId], references: [id])
   card FlashCard @relation(fields: [cardId], references: [id])
 
   @@unique([userId, cardId])
@@ -53,6 +68,6 @@ model ReviewHistory {
   result    Boolean
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user User      @relation(fields: [userId], references: [id])
   card FlashCard @relation(fields: [cardId], references: [id])
 }
