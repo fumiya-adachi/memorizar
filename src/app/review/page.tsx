@@ -18,9 +18,30 @@ export default async function ReviewPage() {
     redirect("/login")
   }
 
+  const now = new Date()
+
   const card = await prisma.flashCard.findFirst({
     where: {
       userId: user.id,
+      OR: [
+        {
+          progress: {
+            none: {
+              userId: user.id,
+            },
+          },
+        },
+        {
+          progress: {
+            some: {
+              userId: user.id,
+              nextReview: {
+                lte: now,
+              },
+            },
+          },
+        },
+      ],
     },
     orderBy: {
       createdAt: "asc",
@@ -36,7 +57,7 @@ export default async function ReviewPage() {
         <div className="mx-auto max-w-2xl rounded-3xl bg-white p-8 shadow-sm">
           <h1 className="text-2xl font-bold text-gray-900">復習</h1>
           <p className="mt-4 text-sm text-gray-500">
-            まだ復習できるカードがありません。
+            いま復習できるカードはありません。
           </p>
         </div>
       </main>

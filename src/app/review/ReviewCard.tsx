@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState, useTransition } from "react"
 import { markFlashCardResult } from "./actions"
 
 type ReviewCardProps = {
@@ -14,10 +15,18 @@ type ReviewCardProps = {
 
 export default function ReviewCard({ card }: ReviewCardProps) {
   const [showAnswer, setShowAnswer] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
-  const submitResult = async (isCorrect: boolean) => {
-    await markFlashCardResult(card.id, isCorrect)
-    window.location.reload()
+  useEffect(() => {
+    setShowAnswer(false)
+  }, [card.id])
+
+  const submitResult = (isCorrect: boolean) => {
+    startTransition(async () => {
+      await markFlashCardResult(card.id, isCorrect)
+      router.refresh()
+    })
   }
 
   return (
@@ -37,42 +46,45 @@ export default function ReviewCard({ card }: ReviewCardProps) {
         </p>
       </div>
 
-      {showAnswer ? (
+      {showAnswer && (
         <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-6">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
             Answer
           </p>
           <p className="mt-3 text-xl text-gray-800">{card.answer}</p>
         </div>
-      ) : (
+      )}
+
+      <div className="mt-6 grid grid-cols-1 gap-3">
         <button
           type="button"
+          disabled={showAnswer || isPending}
           onClick={() => setShowAnswer(true)}
-          className="mt-6 w-full rounded-xl bg-gray-900 px-4 py-3 font-medium text-white hover:bg-gray-800"
+          className="rounded-xl bg-gray-900 px-4 py-3 font-medium text-white hover:bg-gray-800 disabled:opacity-40 cursor-pointer"
         >
           答えを見る
         </button>
-      )}
+      </div>
 
-      {showAnswer ? (
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => submitResult(false)}
-            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-medium text-red-600 hover:bg-red-100"
-          >
-            不正解
-          </button>
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => submitResult(false)}
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-medium text-red-600 disabled:opacity-40 cursor-pointer"
+        >
+          {isPending ? "処理中..." : "不正解"}
+        </button>
 
-          <button
-            type="button"
-            onClick={() => submitResult(true)}
-            className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 font-medium text-green-700 hover:bg-green-100"
-          >
-            正解
-          </button>
-        </div>
-      ) : null}
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => submitResult(true)}
+          className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 font-medium text-green-700 disabled:opacity-40 cursor-pointer"
+        >
+          {isPending ? "処理中..." : "正解"}
+        </button>
+      </div>
     </div>
   )
 }
