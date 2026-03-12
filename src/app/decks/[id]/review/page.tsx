@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
-import { auth } from "../../auth"
-import { prisma } from "../../lib/prisma"
+import { auth } from "../../../../auth"
+import { prisma } from "../../../../lib/prisma"
 import ReviewCard from "./ReviewCard"
 
 export default async function ReviewPage() {

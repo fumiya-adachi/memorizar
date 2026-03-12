@@ -64,7 +64,7 @@ export default async function DeckDetailPage({
             ← Deck一覧へ戻る
           </Link>
 
-          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500">Deck Detail</p>
               <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
@@ -72,18 +72,26 @@ export default async function DeckDetailPage({
               </h1>
             </div>
 
-            <div className="flex gap-3">
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-center">
+            <div className="flex items-center gap-3">
+              {/* 登録済みカード数 */}
+              {/* <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-center">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
                   Cards
                 </p>
                 <p className="mt-1 text-xl font-bold text-gray-900">
                   {deck.flashcards.length}
                 </p>
-              </div>
+              </div> */}
+
+              <Link
+                href={`/decks/${deck.id}/review`}
+                className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
+              >
+                学習する
+              </Link>
             </div>
           </div>
-        </div>
+          </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
           <section className="rounded-3xl bg-white p-6 shadow-sm">

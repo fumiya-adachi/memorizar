@@ -1,8 +1,8 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "../../auth"
-import { prisma } from "../../lib/prisma"
+import { auth } from "../../../../auth"
+import { prisma } from "../../../../lib/prisma"
 
 function calculateNextReviewDate(isCorrect: boolean) {
   const now = new Date()
@@ -35,6 +35,7 @@ export async function markFlashCardResult(cardId: number, isCorrect: boolean) {
     where: {
       id: cardId,
       userId: user.id,
+      deckId: deckId,
     },
   })
 
