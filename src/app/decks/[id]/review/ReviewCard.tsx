@@ -9,6 +9,7 @@ type ReviewCardProps = {
     id: number
     question: string
     answer: string
+    description: string | null
     deckName: string
   }
 }
@@ -47,12 +48,23 @@ export default function ReviewCard({ card }: ReviewCardProps) {
       </div>
 
       {showAnswer && (
-        <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-            Answer
-          </p>
-          <p className="mt-3 text-xl text-gray-800">{card.answer}</p>
-        </div>
+        <>
+          <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+              Answer
+            </p>
+            <p className="mt-3 text-xl text-gray-800">{card.answer}</p>
+          </div>
+
+          {card.description && (
+            <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                Description
+              </p>
+              <p className="mt-3 text-lg text-gray-700">{card.description}</p>
+            </div>
+          )}
+        </>
       )}
 
       <div className="mt-6 grid grid-cols-1 gap-3">

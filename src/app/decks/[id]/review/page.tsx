@@ -68,10 +68,6 @@ export default async function ReviewPage() {
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">復習</h1>
-          <p className="mt-2 text-sm text-gray-500">
-            1枚ずつ確認して、正解・不正解を記録します。
-          </p>
         </div>
 
         <ReviewCard
@@ -79,6 +75,7 @@ export default async function ReviewPage() {
             id: card.id,
             question: card.question,
             answer: card.answer,
+            description: card.description ?? "",
             deckName: card.deck.name,
           }}
         />

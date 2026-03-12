@@ -34,12 +34,13 @@ model Deck {
 }
 
 model FlashCard {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  deckId    Int
-  question  String
-  answer    String
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  deckId      Int
+  question    String
+  answer      String
+  description String?
+  createdAt   DateTime @default(now())
 
   user     User                @relation(fields: [userId], references: [id])
   deck     Deck                @relation(fields: [deckId], references: [id])

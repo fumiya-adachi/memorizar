@@ -50,6 +50,21 @@ export default function FlashCardForm({ deckId }: FlashCardFormProps) {
         />
       </div>
 
+      <div>
+        <label
+          htmlFor="description"
+          className="mb-1 block text-sm font-medium text-gray-700"
+        >
+          補足
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          placeholder="例文等の補足情報を入力"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 outline-none focus:border-gray-900 h-40"
+        ></textarea>
+      </div>
+
       {state.error ? (
         <p className="text-sm text-red-600">{state.error}</p>
       ) : null}

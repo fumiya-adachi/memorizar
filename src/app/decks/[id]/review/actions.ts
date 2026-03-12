@@ -20,7 +20,7 @@ export async function markFlashCardResult(cardId: number, isCorrect: boolean) {
   const session = await auth()
 
   if (!session?.user?.email) {
-    return
+    throw new Error("Unauthorized")
   }
 
   const user = await prisma.user.findUnique({
@@ -28,20 +28,21 @@ export async function markFlashCardResult(cardId: number, isCorrect: boolean) {
   })
 
   if (!user) {
-    return
+    throw new Error("User not found")
   }
 
   const card = await prisma.flashCard.findFirst({
     where: {
       id: cardId,
       userId: user.id,
-      deckId: deckId,
     },
   })
 
   if (!card) {
-    return
+    throw new Error("Card not found")
   }
+
+  const deckId = card.deckId
 
   const existingProgress = await prisma.flashCardProgress.findUnique({
     where: {
@@ -88,5 +89,5 @@ export async function markFlashCardResult(cardId: number, isCorrect: boolean) {
     })
   }
 
-  revalidatePath("/review")
+  revalidatePath(`/decks/${deckId}/review`)
 }

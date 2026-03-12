@@ -35,6 +35,7 @@ export async function createFlashCard(
 
   const question = formData.get("question")?.toString().trim() ?? ""
   const answer = formData.get("answer")?.toString().trim() ?? ""
+  const description = formData.get("description") as string
 
   if (!question || !answer) {
     return { error: "問題と答えを入力してください。" }
@@ -57,6 +58,7 @@ export async function createFlashCard(
       deckId: deck.id,
       question,
       answer,
+      description,
     },
   })
 
