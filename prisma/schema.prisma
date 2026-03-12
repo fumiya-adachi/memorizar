@@ -1,13 +1,58 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+
+  flashcards FlashCard[]
+  progress   FlashCardProgress[]
+  history    ReviewHistory[]
+}
+
+model FlashCard {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  question  String
+  answer    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  progress FlashCardProgress[]
+  history  ReviewHistory[]
+}
+
+model FlashCardProgress {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  cardId       Int
+  correctCount Int       @default(0)
+  wrongCount   Int       @default(0)
+  nextReview   DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+  card FlashCard @relation(fields: [cardId], references: [id])
+
+  @@unique([userId, cardId])
+}
+
+model ReviewHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  cardId    Int
+  result    Boolean
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  card FlashCard @relation(fields: [cardId], references: [id])
 }
