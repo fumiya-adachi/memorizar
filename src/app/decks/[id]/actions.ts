@@ -81,6 +81,7 @@ export async function updateFlashCard(
 
   const question = formData.get("question")?.toString().trim() ?? ""
   const answer = formData.get("answer")?.toString().trim() ?? ""
+  const description = formData.get("description")?.toString().trim() ?? ""
 
   if (!question || !answer) {
     return { error: "問題と答えを入力してください。" }
@@ -103,6 +104,7 @@ export async function updateFlashCard(
     data: {
       question,
       answer,
+      description: description || null,
     },
   })
 

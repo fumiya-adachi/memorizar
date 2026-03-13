@@ -146,7 +146,7 @@ export default async function DeckDetailPage({
                 <div className="hidden grid-cols-[1.2fr_1.2fr_140px] bg-gray-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 md:grid">
                   <p>Question</p>
                   <p>Answer</p>
-                  <p className="text-right">Actions</p>
+                  <p>Description</p>
                 </div>
 
                 <div className="divide-y divide-gray-200">
@@ -158,6 +158,7 @@ export default async function DeckDetailPage({
                         id: card.id,
                         question: card.question,
                         answer: card.answer,
+                        description: card.description,
                       }}
                     />
                   ))}
