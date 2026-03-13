@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { auth } from "../../../auth"
-import { prisma } from "../../../lib/prisma"
+import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
 import DeckForm from "./DeckForm"
 
 export default async function DecksPage() {

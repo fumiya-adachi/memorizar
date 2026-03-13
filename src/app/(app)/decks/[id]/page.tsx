@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { auth } from "../../../../auth"
-import { prisma } from "../../../../lib/prisma"
+import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
 import FlashCardForm from "./FlashCardForm"
 import FlashCardItem from "./FlashCardItem"
 
