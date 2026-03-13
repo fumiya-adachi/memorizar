@@ -6,7 +6,7 @@ export default async function SignupPage() {
   const session = await auth()
 
   if (session?.user) {
-    redirect("/dashboard")
+    redirect("/decks")
   }
 
   return (

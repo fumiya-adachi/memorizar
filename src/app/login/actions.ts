@@ -18,7 +18,7 @@ export async function login(
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/dashboard",
+      redirectTo: "/decks",
     })
   } catch (error) {
     if (error instanceof AuthError) {

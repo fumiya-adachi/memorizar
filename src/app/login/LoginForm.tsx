@@ -24,7 +24,7 @@ export default function LoginForm() {
           name="email"
           type="email"
           required
-          className="w-full rounded-lg border border-gray-300 px-4 py-2"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900"
           placeholder="you@example.com"
         />
       </div>
@@ -41,7 +41,7 @@ export default function LoginForm() {
           name="password"
           type="password"
           required
-          className="w-full rounded-lg border border-gray-300 px-4 py-2"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900"
           placeholder="••••••••"
         />
       </div>

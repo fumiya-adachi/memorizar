@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { auth } from "../../auth"
 import { prisma } from "../../lib/prisma"
 import DeckForm from "./DeckForm"
+import LogoutButton from "@/components/LogoutButton"
 
 export default async function DecksPage() {
   const session = await auth()
@@ -34,20 +35,17 @@ export default async function DecksPage() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-5xl">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Deck一覧</h1>
-            <p className="mt-2 text-sm text-gray-600">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Decks
+            </h1>
+            <p className="mt-1 text-sm text-gray-600">
               学習用の単語帳を作成して、カードを整理できます。
             </p>
           </div>
 
-          {/* <Link
-            href="/dashboard"
-            className="text-sm font-medium text-gray-700 underline underline-offset-4"
-          >
-            ダッシュボードへ戻る
-          </Link> */}
+          <LogoutButton />
         </div>
 
         <section className="mt-8 rounded-2xl bg-white p-6 shadow">
