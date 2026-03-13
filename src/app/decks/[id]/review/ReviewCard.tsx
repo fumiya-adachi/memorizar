@@ -23,6 +23,30 @@ export default function ReviewCard({ card }: ReviewCardProps) {
     setShowAnswer(false)
   }, [card.id])
 
+  const speak = (text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      return
+    }
+
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = "es-ES"
+    utterance.rate = 0.9
+    utterance.pitch = 1
+
+    const voices = window.speechSynthesis.getVoices()
+    const spanishVoice =
+      voices.find((voice) => voice.lang === "es-ES") ||
+      voices.find((voice) => voice.lang.startsWith("es"))
+
+    if (spanishVoice) {
+      utterance.voice = spanishVoice
+    }
+
+    window.speechSynthesis.speak(utterance)
+  }
+
   const submitResult = (isCorrect: boolean) => {
     startTransition(async () => {
       await markFlashCardResult(card.id, isCorrect)
@@ -42,9 +66,21 @@ export default function ReviewCard({ card }: ReviewCardProps) {
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
           Question
         </p>
-        <p className="mt-3 text-2xl font-bold text-gray-900">
-          {card.question}
-        </p>
+
+        <div className="mt-3 flex items-start justify-between gap-4">
+          <p className="text-2xl font-bold text-gray-900">
+            {card.question}
+          </p>
+
+          <button
+            type="button"
+            onClick={() => speak(card.question)}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+          >
+            <span>🔊</span>
+            <span>発音</span>
+          </button>
+        </div>
       </div>
 
       {showAnswer && (
@@ -58,10 +94,25 @@ export default function ReviewCard({ card }: ReviewCardProps) {
 
           {card.description && (
             <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                Description
-              </p>
-              <p className="mt-3 text-lg text-gray-700">{card.description}</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Description
+                  </p>
+                  <p className="mt-3 text-lg text-gray-700">
+                    {card.description}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => speak(card.description)}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                >
+                  <span>🔊</span>
+                  <span>例文</span>
+                </button>
+              </div>
             </div>
           )}
         </>
@@ -72,7 +123,7 @@ export default function ReviewCard({ card }: ReviewCardProps) {
           type="button"
           disabled={showAnswer || isPending}
           onClick={() => setShowAnswer(true)}
-          className="rounded-xl bg-gray-900 px-4 py-3 font-medium text-white hover:bg-gray-800 disabled:opacity-40 cursor-pointer"
+          className="cursor-pointer rounded-xl bg-gray-900 px-4 py-3 font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
         >
           答えを見る
         </button>
@@ -83,7 +134,7 @@ export default function ReviewCard({ card }: ReviewCardProps) {
           type="button"
           disabled={isPending}
           onClick={() => submitResult(false)}
-          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-medium text-red-600 disabled:opacity-40 cursor-pointer"
+          className="cursor-pointer rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-medium text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isPending ? "処理中..." : "不正解"}
         </button>
@@ -92,7 +143,7 @@ export default function ReviewCard({ card }: ReviewCardProps) {
           type="button"
           disabled={isPending}
           onClick={() => submitResult(true)}
-          className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 font-medium text-green-700 disabled:opacity-40 cursor-pointer"
+          className="cursor-pointer rounded-xl border border-green-200 bg-green-50 px-4 py-3 font-medium text-green-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isPending ? "処理中..." : "正解"}
         </button>
