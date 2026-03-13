@@ -42,12 +42,12 @@ export default async function DecksPage() {
             </p>
           </div>
 
-          <Link
+          {/* <Link
             href="/dashboard"
             className="text-sm font-medium text-gray-700 underline underline-offset-4"
           >
             ダッシュボードへ戻る
-          </Link>
+          </Link> */}
         </div>
 
         <section className="mt-8 rounded-2xl bg-white p-6 shadow">

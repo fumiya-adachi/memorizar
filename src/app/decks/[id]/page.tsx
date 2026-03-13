@@ -66,7 +66,6 @@ export default async function DeckDetailPage({
 
           <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Deck Detail</p>
               <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
                 {deck.name}
               </h1>
@@ -83,12 +82,21 @@ export default async function DeckDetailPage({
                 </p>
               </div> */}
 
-              <Link
-                href={`/decks/${deck.id}/review`}
-                className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
-              >
-                学習する
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link
+                  href={`/decks/${deck.id}/review?mode=normal`}
+                  className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  全体を復習
+                </Link>
+
+                <Link
+                  href={`/decks/${deck.id}/review?mode=weak`}
+                  className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
+                >
+                  苦手なカードを復習
+                </Link>
+              </div>
             </div>
           </div>
           </div>
