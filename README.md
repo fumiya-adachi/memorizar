@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Memorizar
 
-## Getting Started
+Memorizar は、単語や知識を効率よく暗記するためのフラッシュカード学習アプリです。  
+ユーザーは Deck（単語帳）を作成し、その中に FlashCard（カード）を追加して学習できます。
 
-First, run the development server:
+カードは復習機能により、正解・不正解の履歴をもとに繰り返し学習できるようになっています。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+# デモ
+
+https://memorizar.vercel.app
+
+## デモアカウント
+
+email  
+demo@example.com
+
+password  
+demo123456
+
+---
+
+# 主な機能
+
+- ユーザー認証（Auth.js）
+- Deck（単語帳）の作成・管理
+- FlashCard の作成 / 編集 / 削除
+- Deckごとの復習機能
+- 苦手カードのみ復習するモード
+- 学習履歴の保存
+- スペイン語発音の音声再生
+- seedデータによるサンプル単語登録
+
+---
+
+# 使用技術
+
+## フロントエンド
+
+- Next.js（App Router）
+- React
+- TypeScript
+- TailwindCSS
+
+## バックエンド
+
+- Next.js Server Actions
+- Auth.js
+
+## データベース
+
+- PostgreSQL（Neon）
+
+## ORM
+
+- Prisma
+
+## インフラ
+
+- Vercel（デプロイ）
+- Docker（ローカル開発）
+
+---
+
+# アーキテクチャ
+
+```
+Next.js (App Router)
+        ↓
+Server Actions
+        ↓
+Prisma ORM
+        ↓
+PostgreSQL (Neon)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# データベース設計
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+主なテーブル
 
-## Learn More
+- User
+- Deck
+- FlashCard
+- FlashCardProgress
+- ReviewHistory
 
-To learn more about Next.js, take a look at the following resources:
+```
+User
+ └ Deck
+     └ FlashCard
+         └ FlashCardProgress
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# ローカル開発手順
 
-## Deploy on Vercel
+## リポジトリをクローン
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+git clone https://github.com/fumiya-adachi/memorizar.git
+cd memorizar
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Docker起動
+
+```
+docker compose up -d
+```
+
+## データベースマイグレーション
+
+```
+docker compose exec next npx prisma migrate dev
+```
+
+## seedデータの投入
+
+```
+docker compose exec next npx prisma db seed
+```
+
+---
+
+# 今後の改善予定
+
+- Deck共有機能
+- モバイルUIの改善
+- 学習統計ダッシュボード
+- SRS（Spaced Repetition System）の導入
+- Google Speech API を利用した高品質な音声読み上げ
+
+---
+
+# 作者
+
+Fumiya Adachi
+
+GitHub  
+https://github.com/fumiya-adachi
