@@ -106,7 +106,7 @@ export default function ReviewCard({ card }: ReviewCardProps) {
 
                 <button
                   type="button"
-                  onClick={() => speak(card.description)}
+                  onClick={() => speak(card.description!)}
                   className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
                 >
                   <span>🔊</span>
