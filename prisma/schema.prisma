@@ -34,12 +34,13 @@ model Deck {
 }
 
 model FlashCard {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  deckId    Int
-  question  String
-  answer    String
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  deckId      Int
+  question    String
+  answer      String
+  description String?
+  createdAt   DateTime @default(now())
 
   user     User                @relation(fields: [userId], references: [id])
   deck     Deck                @relation(fields: [deckId], references: [id])
@@ -53,7 +54,9 @@ model FlashCardProgress {
   cardId       Int
   correctCount Int       @default(0)
   wrongCount   Int       @default(0)
+  reviewCount  Int       @default(0)
   nextReview   DateTime?
+  lastReviewed DateTime?
 
   user User      @relation(fields: [userId], references: [id])
   card FlashCard @relation(fields: [cardId], references: [id])
