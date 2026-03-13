@@ -3,6 +3,7 @@ import bcrypt from "bcrypt"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "../src/generated/prisma/client"
 import { spanishBasicCards } from "./seeds/spanishBasic"
+import { engineeringEnglishCards } from "./seeds/englishEngineer"
 
 const connectionString = process.env.DATABASE_URL
 
@@ -52,6 +53,34 @@ async function main() {
       deckId: deck.id,
     },
   })
+
+  const engineeringDeckName = "英語 エンジニアがよく使う100単語"
+
+  const engineeringDeck =
+    (await prisma.deck.findFirst({
+      where: { userId: user.id, name: engineeringDeckName },
+    })) ??
+    (await prisma.deck.create({
+      data: {
+        name: engineeringDeckName,
+        userId: user.id,
+      },
+    }))
+
+  const engineeringCardCount = await prisma.flashCard.count({
+    where: { userId: user.id, deckId: engineeringDeck.id },
+  })
+
+  if (engineeringCardCount === 0) {
+    await prisma.flashCard.createMany({
+      data: engineeringEnglishCards.map((card) => ({
+        userId: user.id,
+        deckId: engineeringDeck.id,
+        question: card.question,
+        answer: card.answer,
+      })),
+    })
+  }
 
   if (existingCards === 0) {
     await prisma.flashCard.createMany({
