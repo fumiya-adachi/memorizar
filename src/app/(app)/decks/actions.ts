@@ -1,8 +1,8 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "../../auth"
-import { prisma } from "../../lib/prisma"
+import { auth } from "../../../auth"
+import { prisma } from "../../../lib/prisma"
 
 export type DeckState = {
   error?: string

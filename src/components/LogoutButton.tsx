@@ -7,7 +7,7 @@ export default function LogoutButton() {
     <form action={logout}>
       <button
         type="submit"
-        className="rounded-lg bg-gray-900 px-4 py-2 text-white pointer-cursor hover:bg-gray-700 transition"
+        className="text-sm font-medium text-gray-600 transition hover:text-gray-900"
       >
         ログアウト
       </button>

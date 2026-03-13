@@ -1,9 +1,8 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { auth } from "../../auth"
-import { prisma } from "../../lib/prisma"
+import { auth } from "../../../auth"
+import { prisma } from "../../../lib/prisma"
 import DeckForm from "./DeckForm"
-import LogoutButton from "@/components/LogoutButton"
 
 export default async function DecksPage() {
   const session = await auth()
@@ -44,8 +43,6 @@ export default async function DecksPage() {
               学習用の単語帳を作成して、カードを整理できます。
             </p>
           </div>
-
-          <LogoutButton />
         </div>
 
         <section className="mt-8 rounded-2xl bg-white p-6 shadow">
