@@ -20,6 +20,51 @@ function getAccuracy(progress?: {
   return progress.correctCount / progress.reviewCount
 }
 
+function sortByWeakness<
+  T extends {
+    createdAt: Date
+    progress: {
+      correctCount: number
+      wrongCount: number
+      reviewCount: number
+      nextReview: Date | null
+      lastReviewed: Date | null
+    }[]
+  }
+>(cards: T[]) {
+  return [...cards].sort((a, b) => {
+    const progressA = a.progress[0] ?? null
+    const progressB = b.progress[0] ?? null
+
+    const accuracyA = getAccuracy(progressA)
+    const accuracyB = getAccuracy(progressB)
+
+    // 正答率が低い順
+    if (accuracyA !== accuracyB) {
+      return accuracyA - accuracyB
+    }
+
+    // 復習回数が少ない順
+    const reviewCountA = progressA?.reviewCount ?? 0
+    const reviewCountB = progressB?.reviewCount ?? 0
+
+    if (reviewCountA !== reviewCountB) {
+      return reviewCountA - reviewCountB
+    }
+
+    // 間違えた回数が多いものを優先
+    const wrongCountA = progressA?.wrongCount ?? 0
+    const wrongCountB = progressB?.wrongCount ?? 0
+
+    if (wrongCountA !== wrongCountB) {
+      return wrongCountB - wrongCountA
+    }
+
+    // 最後は古いカード順
+    return a.createdAt.getTime() - b.createdAt.getTime()
+  })
+}
+
 export default async function ReviewPage({
   params,
   searchParams,
@@ -58,8 +103,6 @@ export default async function ReviewPage({
     notFound()
   }
 
-  const now = new Date()
-
   const cards = await prisma.flashCard.findMany({
     where: {
       deckId: deck.id,
@@ -92,62 +135,12 @@ export default async function ReviewPage({
   let sortedCards = [...cards]
 
   if (mode === "weak") {
-    sortedCards.sort((a, b) => {
-      const progressA = a.progress[0] ?? null
-      const progressB = b.progress[0] ?? null
-
-      const accuracyA = getAccuracy(progressA)
-      const accuracyB = getAccuracy(progressB)
-
-      if (accuracyA !== accuracyB) {
-        return accuracyA - accuracyB
-      }
-
-      const reviewCountA = progressA?.reviewCount ?? 0
-      const reviewCountB = progressB?.reviewCount ?? 0
-
-      if (reviewCountA !== reviewCountB) {
-        return reviewCountA - reviewCountB
-      }
-
-      return a.createdAt.getTime() - b.createdAt.getTime()
-    })
+    // 苦手モード
+    sortedCards = sortByWeakness(cards)
   } else {
-    sortedCards = sortedCards.filter((card) => {
-      const progress = card.progress[0] ?? null
-
-      if (!progress) return true
-      if (!progress.nextReview) return true
-
-      return progress.nextReview <= now
-    })
-
-    sortedCards.sort((a, b) => {
-      const progressA = a.progress[0] ?? null
-      const progressB = b.progress[0] ?? null
-
-      const nextA = progressA?.nextReview?.getTime() ?? 0
-      const nextB = progressB?.nextReview?.getTime() ?? 0
-
-      return nextA - nextB
-    })
-  }
-
-  if (sortedCards.length === 0) {
-    return (
-      <main className="min-h-screen bg-gray-50 px-4 py-10">
-        <div className="mx-auto max-w-2xl rounded-3xl bg-white p-8 shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {mode === "weak" ? "苦手カード復習" : "通常復習"}
-          </h1>
-          <p className="mt-4 text-sm text-gray-500">
-            {mode === "weak"
-              ? "いま練習対象の苦手カードはありません。"
-              : "いま復習対象のカードはありません。"}
-          </p>
-        </div>
-      </main>
-    )
+    // 通常モード
+    // nextReviewでは絞らず、全カードを正答率が低い順に出す
+    sortedCards = sortByWeakness(cards)
   }
 
   const card = sortedCards[0]
@@ -159,12 +152,12 @@ export default async function ReviewPage({
         <div className="mb-6">
           <p className="text-sm font-medium text-gray-500">{deck.name}</p>
           <h1 className="mt-2 text-3xl font-bold text-gray-900">
-            {mode === "weak" ? "苦手カード復習" : "通常復習"}
+            {mode === "weak" ? "苦手カード復習" : "全体復習"}
           </h1>
           <p className="mt-2 text-sm text-gray-500">
             {mode === "weak"
-              ? "正答率が低いカードから優先して出題します。"
-              : "未学習または復習期限が来たカードを順番に出題します。"}
+              ? "正答率が低いカードを優先して出題します。"
+              : "Deck内の全カードを対象に、正答率が低い順で出題します。"}
           </p>
         </div>
 
@@ -182,7 +175,11 @@ export default async function ReviewPage({
         <div className="mt-4 rounded-2xl bg-white p-4 text-sm text-gray-600 shadow-sm">
           {progress ? (
             <>
-              正答率: {Math.round((progress.correctCount / progress.reviewCount) * 100)}%
+              正答率:{" "}
+              {progress.reviewCount > 0
+                ? Math.round((progress.correctCount / progress.reviewCount) * 100)
+                : 0}
+              %
               {" / "}
               復習回数: {progress.reviewCount}
             </>

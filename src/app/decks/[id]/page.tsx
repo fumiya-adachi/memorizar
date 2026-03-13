@@ -61,7 +61,7 @@ export default async function DeckDetailPage({
             href="/decks"
             className="inline-flex items-center text-sm font-medium text-gray-500 transition hover:text-gray-900"
           >
-            ← Deck一覧へ戻る
+            ← Decksへ戻る
           </Link>
 
           <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -87,7 +87,7 @@ export default async function DeckDetailPage({
                   href={`/decks/${deck.id}/review?mode=normal`}
                   className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
-                  全体を復習
+                  全体を学習
                 </Link>
 
                 <Link

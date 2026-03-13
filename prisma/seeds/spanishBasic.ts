@@ -1,4 +1,5 @@
 export const spanishBasicCards = [
+{ question: "memorizar", answer: "暗記する", description: "Memorizar frases completas ayuda mucho." },
 { question: "hola", answer: "こんにちは", description: "Hola, ¿cómo estás?" },
 { question: "adiós", answer: "さようなら", description: "Adiós, hasta mañana." },
 { question: "gracias", answer: "ありがとう", description: "Muchas gracias por tu ayuda." },
@@ -108,5 +109,4 @@ export const spanishBasicCards = [
   { question: "array", answer: "配列", description: "El array contiene varios números." },
   { question: "condición", answer: "条件", description: "Si la condición es verdadera, se ejecuta el código." },
   { question: "bucle", answer: "ループ", description: "El bucle repite la operación varias veces." },
-  { question: "error", answer: "エラー / バグ", description: "Hay un error en el código." },
 ]
