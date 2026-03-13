@@ -102,4 +102,11 @@ export const spanishBasicCards = [
 { question: "tener", answer: "持つ", description: "Tengo un coche." },
 { question: "ser", answer: "〜である", description: "Soy estudiante." },
 { question: "estar", answer: "いる", description: "Estoy en casa." },
+
+  { question: "variable", answer: "変数", description: "Esta variable guarda el nombre del usuario." },
+  { question: "función", answer: "関数", description: "Esta función calcula el total." },
+  { question: "array", answer: "配列", description: "El array contiene varios números." },
+  { question: "condición", answer: "条件", description: "Si la condición es verdadera, se ejecuta el código." },
+  { question: "bucle", answer: "ループ", description: "El bucle repite la operación varias veces." },
+  { question: "error", answer: "エラー / バグ", description: "Hay un error en el código." },
 ]
