@@ -21,7 +21,7 @@ export async function createDeck(
   const name = formData.get("name")?.toString().trim() ?? ""
 
   if (!name) {
-    return { error: "Deck名を入力してください。" }
+    return { error: "単語帳名を入力してください。" }
   }
 
   const user = await prisma.user.findUnique({
@@ -40,7 +40,7 @@ export async function createDeck(
   })
 
   if (existingDeck) {
-    return { error: "同じ名前のDeckが既に存在します。" }
+    return { error: "同じ名前の単語帳名が既に存在します。" }
   }
 
   const deck = await prisma.deck.create({
