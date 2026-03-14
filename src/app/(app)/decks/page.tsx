@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import DeckForm from "./DeckForm"
+import AIDeckForm from "./AIDeckForm"
 
 export default async function DecksPage() {
   const session = await auth()
@@ -37,7 +38,7 @@ export default async function DecksPage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Decks
+              単語帳リスト
             </h1>
             <p className="mt-1 text-sm text-gray-600">
               学習用の単語帳を作成して、カードを整理できます。
@@ -46,11 +47,21 @@ export default async function DecksPage() {
         </div>
 
         <section className="mt-8 rounded-2xl bg-white p-6 shadow">
+          <details open>
+            <summary className="cursor-pointer text-lg font-semibold text-gray-900">
+              AIで単語帳を自動作成
+            </summary>
+            <div className="mt-4">
+              <AIDeckForm />
+            </div>
+          </details>
+        </section>
+
+        <section className="mt-8 rounded-2xl bg-white p-6 shadow">
           <details open={decks.length === 0}>
             <summary className="cursor-pointer text-lg font-semibold text-gray-900">
-              新しいDeckを作成
+              手動で単語帳を作成
             </summary>
-
             <div className="mt-4">
               <DeckForm />
             </div>
@@ -59,7 +70,7 @@ export default async function DecksPage() {
 
         <section className="mt-8">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">あなたのDeck</h2>
+            <h2 className="text-xl font-semibold text-gray-900">あなたの単語帳</h2>
             <p className="text-sm text-gray-500">{decks.length}件</p>
           </div>
 
@@ -69,7 +80,7 @@ export default async function DecksPage() {
                 まだDeckがありません
               </p>
               <p className="mt-2 text-sm text-gray-500">
-                最初のDeckを作成して、暗記カードを追加していきましょう。
+                最初の単語帳を作成して、暗記カードを追加していきましょう。
               </p>
             </div>
           ) : (
@@ -96,12 +107,12 @@ export default async function DecksPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between">
+                  {/* <div className="mt-6 flex items-center justify-between">
                     <span className="text-sm text-gray-500">
-                      Deckを開く
+                      単語帳を開く
                     </span>
                     <span className="text-lg text-gray-400">→</span>
-                  </div>
+                  </div> */}
                 </Link>
               ))}
             </div>
