@@ -1,4 +1,4 @@
-.PHONY: up down build restart logs ps studio migrate deploy generate format db shell
+.PHONY: up down build restart logs ps studio migrate deploy generate format db shell reset seed prisma
 
 up:
 	docker compose up -d
@@ -39,3 +39,13 @@ db:
 
 shell:
 	docker compose exec next sh
+
+reset:
+	docker compose exec next npx prisma migrate reset --force
+	docker compose exec next npx prisma generate
+
+seed:
+	docker compose exec next npx prisma db seed
+
+prisma:
+	docker compose exec next npx prisma generate
