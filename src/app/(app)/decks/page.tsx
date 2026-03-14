@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import DeckForm from "./DeckForm"
+import AIDeckForm from "./AIDeckForm"
 
 export default async function DecksPage() {
   const session = await auth()
@@ -53,6 +54,9 @@ export default async function DecksPage() {
 
             <div className="mt-4">
               <DeckForm />
+            </div>
+            <div className="mt-4">
+              <AIDeckForm />
             </div>
           </details>
         </section>
