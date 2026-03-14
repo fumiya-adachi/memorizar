@@ -61,7 +61,7 @@ export default async function DeckDetailPage({
             href="/decks"
             className="inline-flex items-center text-sm font-medium text-gray-500 transition hover:text-gray-900"
           >
-            ← Decksへ戻る
+            ← 単語帳リストへ戻る
           </Link>
 
           <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -72,16 +72,6 @@ export default async function DeckDetailPage({
             </div>
 
             <div className="flex items-center gap-3">
-              {/* 登録済みカード数 */}
-              {/* <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-center">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                  Cards
-                </p>
-                <p className="mt-1 text-xl font-bold text-gray-900">
-                  {deck.flashcards.length}
-                </p>
-              </div> */}
-
               <div className="flex items-center gap-3">
                 <Link
                   href={`/decks/${deck.id}/review?mode=normal`}
@@ -107,7 +97,7 @@ export default async function DeckDetailPage({
               カードを追加
             </h2>
             <p className="mt-2 text-sm leading-6 text-gray-500">
-              このDeckに新しいフラッシュカードを追加します。
+              この単語帳に新しいフラッシュカードを追加します。
               単語・意味・用語などを登録して、あとで復習できるようにしましょう。
             </p>
 
@@ -123,7 +113,7 @@ export default async function DeckDetailPage({
                   登録済みカード
                 </h2>
                 <p className="mt-1 text-sm text-gray-500">
-                  このDeckに登録されているフラッシュカード一覧です。
+                  この単語帳に登録されているフラッシュカード一覧です。
                 </p>
               </div>
 

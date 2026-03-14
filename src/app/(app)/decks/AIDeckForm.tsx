@@ -26,6 +26,7 @@ export default function AIDeckForm() {
         body: JSON.stringify({
           topic,
           count,
+          language
         }),
       })
 
@@ -96,7 +97,7 @@ export default function AIDeckForm() {
         <input
           id="count"
           type="number"
-          min={1}
+          min={5}
           max={50}
           value={count}
           onChange={(e) => setCount(Number(e.target.value))}

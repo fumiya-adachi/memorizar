@@ -80,7 +80,7 @@ export default async function DecksPage() {
                 まだDeckがありません
               </p>
               <p className="mt-2 text-sm text-gray-500">
-                最初のDeckを作成して、暗記カードを追加していきましょう。
+                最初の単語帳を作成して、暗記カードを追加していきましょう。
               </p>
             </div>
           ) : (
@@ -107,12 +107,12 @@ export default async function DecksPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between">
+                  {/* <div className="mt-6 flex items-center justify-between">
                     <span className="text-sm text-gray-500">
-                      Deckを開く
+                      単語帳を開く
                     </span>
                     <span className="text-lg text-gray-400">→</span>
-                  </div>
+                  </div> */}
                 </Link>
               ))}
             </div>
