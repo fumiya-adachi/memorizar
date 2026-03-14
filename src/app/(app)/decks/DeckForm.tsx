@@ -15,7 +15,7 @@ export default function DeckForm() {
           htmlFor="name"
           className="mb-1 block text-sm font-medium text-gray-700"
         >
-          Deck名
+          単語帳名
         </label>
         <input
           id="name"
@@ -35,7 +35,7 @@ export default function DeckForm() {
         disabled={isPending}
         className="rounded-lg bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
       >
-        {isPending ? "作成中..." : "Deckを作成"}
+        {isPending ? "作成中..." : "単語帳を作成"}
       </button>
     </form>
   )

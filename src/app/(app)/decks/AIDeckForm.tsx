@@ -32,7 +32,7 @@ export default function AIDeckForm() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error ?? "Deck生成に失敗しました。")
+        setError(data.error ?? "単語帳の生成に失敗しました。")
         return
       }
 
@@ -91,12 +91,12 @@ export default function AIDeckForm() {
           htmlFor="count"
           className="mb-1 block text-sm font-medium text-gray-700"
         >
-          枚数
+          単語数 <span className="text-xs text-gray-500">（*現在ベータ版のため上限は50です）</span>
         </label>
         <input
           id="count"
           type="number"
-          min={5}
+          min={1}
           max={50}
           value={count}
           onChange={(e) => setCount(Number(e.target.value))}
@@ -111,7 +111,7 @@ export default function AIDeckForm() {
         disabled={isLoading}
         className="rounded-xl bg-gray-900 px-4 py-3 font-medium text-white disabled:opacity-50"
       >
-        {isLoading ? "生成中..." : "AIでDeckを作成"}
+        {isLoading ? "生成中..." : "AIで単語帳を作成"}
       </button>
     </form>
   )
