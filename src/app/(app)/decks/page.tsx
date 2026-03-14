@@ -46,12 +46,15 @@ export default async function DecksPage() {
         </div>
 
         <section className="mt-8 rounded-2xl bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-900">新しいDeckを作成</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            例: スペイン語 基本単語 / React Hooks / Docker 入門
-          </p>
+          <details open={decks.length === 0}>
+            <summary className="cursor-pointer text-lg font-semibold text-gray-900">
+              新しいDeckを作成
+            </summary>
 
-          <DeckForm />
+            <div className="mt-4">
+              <DeckForm />
+            </div>
+          </details>
         </section>
 
         <section className="mt-8">

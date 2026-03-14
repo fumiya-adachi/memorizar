@@ -123,7 +123,7 @@ export default function ReviewCard({ card }: ReviewCardProps) {
           type="button"
           disabled={showAnswer || isPending}
           onClick={() => setShowAnswer(true)}
-          className="cursor-pointer rounded-xl bg-gray-900 px-4 py-3 font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+          className="cursor-pointer rounded-xl bg-gray-900 px-4 py-3 font-medium text-white hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-gray-900"
         >
           答えを見る
         </button>
@@ -134,7 +134,7 @@ export default function ReviewCard({ card }: ReviewCardProps) {
           type="button"
           disabled={isPending}
           onClick={() => submitResult(false)}
-          className="cursor-pointer rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-medium text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+          className="cursor-pointer rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-medium text-red-600 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-red-100"
         >
           {isPending ? "処理中..." : "不正解"}
         </button>
@@ -143,7 +143,7 @@ export default function ReviewCard({ card }: ReviewCardProps) {
           type="button"
           disabled={isPending}
           onClick={() => submitResult(true)}
-          className="cursor-pointer rounded-xl border border-green-200 bg-green-50 px-4 py-3 font-medium text-green-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="cursor-pointer rounded-xl border border-green-200 bg-green-50 px-4 py-3 font-medium text-green-700 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-green-100"
         >
           {isPending ? "処理中..." : "正解"}
         </button>
