@@ -1,8 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
 export type DeckState = {
   error?: string
@@ -43,14 +43,12 @@ export async function createDeck(
     return { error: "同じ名前のDeckが既に存在します。" }
   }
 
-  await prisma.deck.create({
+  const deck = await prisma.deck.create({
     data: {
       name,
       userId: user.id,
     },
   })
 
-  revalidatePath("/decks")
-
-  return {}
+  redirect(`/decks/${deck.id}`)
 }
