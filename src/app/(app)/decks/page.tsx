@@ -40,9 +40,6 @@ export default async function DecksPage() {
             <h1 className="text-2xl font-bold text-gray-900">
               単語帳リスト
             </h1>
-            <p className="mt-1 text-sm text-gray-600">
-              学習用の単語帳を作成して、カードを整理できます。
-            </p>
           </div>
         </div>
 

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { Select } from "@/components/ui/select"
 
 export default function AIDeckForm() {
   const router = useRouter()
@@ -49,27 +50,21 @@ export default function AIDeckForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-    <div className="space-y-1">
-      <label
-        htmlFor="language"
-        className="block text-sm font-medium text-gray-700"
-      >
-        学習言語
-      </label>
-
-      <select
-        id="language"
-        name="language"
-        value={language}
-        onChange={(e) => setLanguage(e.target.value)}
-        className="w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none transition focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
-      >
-        <option value="English">英語</option>
-        <option value="Spanish">スペイン語</option>
-        <option value="French">フランス語</option>
-        <option value="Russian">ロシア語</option>
-      </select>
-    </div>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div>
+        <Select
+          id="questionLanguage"
+          name="questionLanguage"
+          label="学びたい言語"
+          options={[
+            { value: "en-US", label: "英語" },
+            { value: "es-ES", label: "スペイン語" },
+            { value: "fr-FR", label: "フランス語" },
+            { value: "de-DE", label: "ドイツ語" },
+          ]}
+          defaultValue="en-US"
+        />
+      </div>
 
       <div>
         <label
@@ -104,7 +99,7 @@ export default function AIDeckForm() {
           className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 outline-none focus:border-gray-900"
         />
       </div>
-
+    </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <button

@@ -43,6 +43,8 @@ async function main() {
     (await prisma.deck.create({
       data: {
         name: deckName,
+        questionLanguage: "es-ES",
+        answerLanguage: "ja-JP",
         userId: user.id,
       },
     }))
@@ -63,6 +65,8 @@ async function main() {
     (await prisma.deck.create({
       data: {
         name: engineeringDeckName,
+        questionLanguage: "en-US",
+        answerLanguage: "ja-JP",
         userId: user.id,
       },
     }))

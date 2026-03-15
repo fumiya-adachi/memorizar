@@ -40,7 +40,7 @@ export default function DeckForm() {
             id="name"
             name="name"
             type="text"
-            placeholder="スペイン語 基本単語"
+            placeholder="英語 基本100単語"
             className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 outline-none focus:border-gray-900"
           />
         </div>
