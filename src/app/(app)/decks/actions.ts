@@ -19,6 +19,8 @@ export async function createDeck(
   }
 
   const name = formData.get("name")?.toString().trim() ?? ""
+  const questionLanguage = formData.get("questionLanguage")?.toString() || null
+  const answerLanguage = formData.get("answerLanguage")?.toString() || null
 
   if (!name) {
     return { error: "単語帳名を入力してください。" }
@@ -47,6 +49,8 @@ export async function createDeck(
     data: {
       name,
       userId: user.id,
+      questionLanguage: questionLanguage,
+      answerLanguage: answerLanguage
     },
   })
 

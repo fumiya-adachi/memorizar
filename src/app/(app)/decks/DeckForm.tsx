@@ -18,12 +18,11 @@ export default function DeckForm() {
             name="questionLanguage"
             label="学びたい言語"
             options={[
+              { value: "", label: "指定なし" },
               { value: "en-US", label: "英語" },
               { value: "es-ES", label: "スペイン語" },
               { value: "fr-FR", label: "フランス語" },
               { value: "de-DE", label: "ドイツ語" },
-              { value: "zh-CN", label: "中国語" },
-              { value: "ja-JP", label: "日本語" },
             ]}
             defaultValue="en-US"
           />
