@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Memorizar",
   description: "Memorizar is a flashcard app for efficient vocabulary and knowledge memorization.",
+  icons: {
+    icon: "/icon.svg",
+  }
 };
 
 export default function RootLayout({
