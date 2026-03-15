@@ -11,6 +11,8 @@ type ReviewCardProps = {
     answer: string
     description: string | null
     deckName: string
+    questionLanguage: string | null
+    answerLanguage: string | null
   }
 }
 
@@ -23,26 +25,17 @@ export default function ReviewCard({ card }: ReviewCardProps) {
     setShowAnswer(false)
   }, [card.id])
 
-  const speak = (text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      return
-    }
+  const speak = (text: string | null, language: string | null) => {
+    if (!language || !text) return
+    if (typeof window === "undefined") return
+    if (!window.speechSynthesis) return
 
     window.speechSynthesis.cancel()
 
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = "es-ES"
+    utterance.lang = language
     utterance.rate = 0.9
-    utterance.pitch = 1
-
-    const voices = window.speechSynthesis.getVoices()
-    const spanishVoice =
-      voices.find((voice) => voice.lang === "es-ES") ||
-      voices.find((voice) => voice.lang.startsWith("es"))
-
-    if (spanishVoice) {
-      utterance.voice = spanishVoice
-    }
+    utterance.pitch = 0.9
 
     window.speechSynthesis.speak(utterance)
   }
@@ -72,14 +65,15 @@ export default function ReviewCard({ card }: ReviewCardProps) {
             {card.question}
           </p>
 
-          <button
-            type="button"
-            onClick={() => speak(card.question)}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-          >
-            <span>🔊</span>
-            <span>発音</span>
-          </button>
+          {card.questionLanguage && (
+            <button
+              type="button"
+              onClick={() => speak(card.question, card.questionLanguage)}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+            >
+              <span>🔊</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -89,7 +83,20 @@ export default function ReviewCard({ card }: ReviewCardProps) {
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
               Answer
             </p>
-            <p className="mt-3 text-xl text-gray-800">{card.answer}</p>
+
+            <div className="mt-3 flex items-start justify-between gap-4">
+              <p className="mt-3 text-xl text-gray-800">{card.answer}</p>
+
+              {card.answerLanguage && (
+                <button
+                  type="button"
+                  onClick={() => speak(card.answer, card.answerLanguage)}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                >
+                  <span>🔊</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {card.description && (
@@ -104,14 +111,15 @@ export default function ReviewCard({ card }: ReviewCardProps) {
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => speak(card.description!)}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-                >
-                  <span>🔊</span>
-                  <span>例文</span>
-                </button>
+                {card.answerLanguage && (
+                  <button
+                    type="button"
+                    onClick={() => speak(card.description, card.questionLanguage!)}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                  >
+                    <span>🔊</span>
+                  </button>
+                )}
               </div>
             </div>
           )}
