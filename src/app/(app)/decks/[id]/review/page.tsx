@@ -164,11 +164,10 @@ export default async function ReviewPage({
         <ReviewCard
           key={card.id}
           card={{
-            id: card.id,
-            question: card.question,
-            answer: card.answer,
-            description: card.description,
+            ...card,
             deckName: card.deck.name,
+            questionLanguage: card.deck.questionLanguage,
+            answerLanguage: card.deck.answerLanguage,
           }}
         />
 
