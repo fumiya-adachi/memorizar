@@ -8,7 +8,7 @@ export default function AIDeckForm() {
   const router = useRouter()
   const [topic, setTopic] = useState("")
   const [count, setCount] = useState(5)
-  const [language, setLanguage] = useState("English")
+  const [questionLanguage, setQuestionLanguage] = useState("en-US")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
@@ -27,7 +27,7 @@ export default function AIDeckForm() {
         body: JSON.stringify({
           topic,
           count,
-          language
+          questionLanguage
         }),
       })
 
@@ -62,7 +62,8 @@ export default function AIDeckForm() {
             { value: "fr-FR", label: "フランス語" },
             { value: "de-DE", label: "ドイツ語" },
           ]}
-          defaultValue="en-US"
+          value={questionLanguage}
+          onChange={(e) => setQuestionLanguage(e.target.value)}
         />
       </div>
 

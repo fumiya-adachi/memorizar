@@ -11,7 +11,7 @@ const client = new OpenAI({
 const RequestSchema = z.object({
   topic: z.string().min(1),
   count: z.number().int().min(5).max(50),
-  language: z.string().min(1),
+  questionLanguage: z.string().min(1),
 })
 
 const GeneratedDeckSchema = z.object({
@@ -57,21 +57,21 @@ export async function POST(request: Request) {
       )
     }
 
-    const { topic, count, language } = parsedRequest.data
+    const { topic, count, questionLanguage } = parsedRequest.data
 
     const response = await client.responses.create({
       model: "gpt-5.4",
       reasoning: { effort: "medium" },
       instructions:
-        `あなたは語学学習アプリ用の教材作成アシスタントです。日本語話者向けに、${language}の単語カードを作ります。`,
+        `あなたは語学学習アプリ用の教材作成アシスタントです。日本語話者向けに、${questionLanguage}の単語カードを作ります。`,
       input: `
         以下の条件でフラッシュカード用データを生成してください。
 
         - ジャンル: ${topic}
         - 枚数: ${count}
-        - question: ${language}の単語または短い表現
+        - question: ${questionLanguage}の単語または短い表現
         - answer: 日本語訳
-        - description: ${language}の短い例文。不要なら null
+        - description: ${questionLanguage}の短い例文。不要なら null
         - deckName: ジャンルに合う自然な日本語タイトル
 
         出力は JSON のみ。
@@ -123,6 +123,8 @@ export async function POST(request: Request) {
     const deck = await prisma.deck.create({
       data: {
         name: deckName,
+        questionLanguage: questionLanguage,
+        answerLanguage: "ja-JP",
         userId: user.id,
       },
     })
