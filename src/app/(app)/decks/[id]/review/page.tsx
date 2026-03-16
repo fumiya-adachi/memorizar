@@ -150,10 +150,10 @@ export default async function ReviewPage({
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
-          <p className="text-sm font-medium text-gray-500">{deck.name}</p>
-          <h1 className="mt-2 text-3xl font-bold text-gray-900">
+          {/* <p className="text-sm font-medium text-gray-500">{deck.name}</p> */}
+          {/* <h1 className="mt-2 text-3xl font-bold text-gray-900">
             {mode === "weak" ? "苦手カード復習" : "全体復習"}
-          </h1>
+          </h1> */}
           <p className="mt-2 text-sm text-gray-500">
             {mode === "weak"
               ? "正答率が低いカードを優先して出題します。"
