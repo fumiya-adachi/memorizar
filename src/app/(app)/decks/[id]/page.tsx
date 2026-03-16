@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma"
 import FlashCardForm from "./FlashCardForm"
 import FlashCardItem from "./FlashCardItem"
 import { ROUTES } from "@/constants/routes"
+import DeleteDeckButton from "./DeleteDeckButton"
+import { deleteDeck } from "./actions"
 
 type DeckDetailPageProps = {
   params: Promise<{
@@ -94,19 +96,23 @@ export default async function DeckDetailPage({
           </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <section className="rounded-3xl bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900">
-              カードを追加
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-500">
-              この単語帳に新しいフラッシュカードを追加します。
-              単語・意味・用語などを登録して、あとで復習できるようにしましょう。
-            </p>
+          <div className="flex flex-col gap-4">
+            <section className="rounded-3xl bg-white p-6 shadow-sm h-[640px] overflow-y-auto">
+              <h2 className="text-xl font-semibold text-gray-900">
+                カードを追加
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-gray-500">
+                この単語帳に新しいフラッシュカードを追加します。
+                単語・意味・用語などを登録して、あとで復習できるようにしましょう。
+              </p>
 
-            <div className="mt-6">
-              <FlashCardForm deckId={deck.id} />
-            </div>
-          </section>
+              <div className="mt-6">
+                <FlashCardForm deckId={deck.id} />
+              </div>
+            </section>
+
+            <DeleteDeckButton deckId={deck.id} onDelete={deleteDeck} />
+          </div>
 
           <section className="rounded-3xl bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
