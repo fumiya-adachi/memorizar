@@ -2,6 +2,8 @@
 
 import { useActionState } from "react"
 import { login } from "./actions"
+import Link from "next/link"
+import { ROUTES } from "@/constants/routes"
 
 const initialState = {
   error: "",
@@ -25,7 +27,7 @@ export default function LoginForm() {
           type="email"
           required
           className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900"
-          placeholder="you@example.com"
+          placeholder="example@email.com"
         />
       </div>
 
@@ -42,7 +44,7 @@ export default function LoginForm() {
           type="password"
           required
           className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900"
-          placeholder="••••••••"
+          placeholder="パスワードを入力"
         />
       </div>
 
@@ -57,6 +59,12 @@ export default function LoginForm() {
       >
         {isPending ? "ログイン中..." : "ログイン"}
       </button>
+      <p className="mt-6 text-sm text-gray-600">
+          アカウントをお持ちでないですか？{" "}
+        <Link href={ROUTES.signup} className="font-medium text-gray-900 underline">
+          新規登録
+        </Link>
+      </p>
     </form>
   )
 }

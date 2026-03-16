@@ -16,22 +16,6 @@ export default function SignupForm() {
     <form action={formAction} className="mt-6 space-y-4">
       <div>
         <label
-          htmlFor="name"
-          className="mb-1 block text-sm font-medium text-gray-700"
-        >
-          名前
-        </label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none focus:border-gray-900 text-gray-900"
-          placeholder="Fumiya"
-        />
-      </div>
-
-      <div>
-        <label
           htmlFor="email"
           className="mb-1 block text-sm font-medium text-gray-700"
         >
@@ -43,7 +27,7 @@ export default function SignupForm() {
           type="email"
           required
           className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none focus:border-gray-900 text-gray-900"
-          placeholder="you@example.com"
+          placeholder="example@email.com"
         />
       </div>
 
