@@ -9,7 +9,7 @@ import { ROUTES } from "@/constants/routes"
 export default function Header() {
   const pathname = usePathname()
 
-  const hiddenPaths = [ROUTES.login, ROUTES.signup]
+  const hiddenPaths: string[] = [ROUTES.login, ROUTES.signup]
   const hideLogout = hiddenPaths.includes(pathname)
   return (
     <header className="border-b border-gray-200 bg-white">
