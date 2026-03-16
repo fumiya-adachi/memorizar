@@ -4,23 +4,30 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import FlashCardForm from "./FlashCardForm"
 import FlashCardItem from "./FlashCardItem"
+import Pagination from "@/components/ui/Pagination"
 import { ROUTES } from "@/constants/routes"
 import DeleteDeckButton from "./DeleteDeckButton"
 import { deleteDeck } from "./actions"
+
+export const dynamic = "force-dynamic"
 
 type DeckDetailPageProps = {
   params: Promise<{
     id: string
   }>
+  searchParams: Promise<{
+    page?: string
+  }>
 }
 
 export default async function DeckDetailPage({
   params,
+  searchParams,
 }: DeckDetailPageProps) {
   const session = await auth()
 
   if (!session?.user?.email) {
-    redirect("/login")
+    redirect(ROUTES.login)
   }
 
   const user = await prisma.user.findUnique({
@@ -28,10 +35,12 @@ export default async function DeckDetailPage({
   })
 
   if (!user) {
-    redirect("/login")
+    redirect(ROUTES.login)
   }
 
   const { id } = await params
+  const { page: pageQuery = "1" } = await searchParams
+
   const deckId = Number(id)
 
   if (Number.isNaN(deckId)) {
@@ -43,18 +52,29 @@ export default async function DeckDetailPage({
       id: deckId,
       userId: user.id,
     },
-    include: {
-      flashcards: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-    },
   })
 
   if (!deck) {
     notFound()
   }
+
+  const PAGE_SIZE = 10
+  const requestedPage = Number(pageQuery ?? "1")
+  const currentPage = Number.isNaN(requestedPage) || requestedPage < 1 ? 1 : requestedPage
+
+  const totalFlashCards = await prisma.flashCard.count({
+    where: { deckId },
+  })
+
+  const totalPages = Math.max(1, Math.ceil(totalFlashCards / PAGE_SIZE))
+  const page = Math.min(currentPage, totalPages)
+
+  const flashcards = await prisma.flashCard.findMany({
+    where: { deckId },
+    orderBy: { createdAt: "desc" },
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
+  })
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
@@ -126,11 +146,11 @@ export default async function DeckDetailPage({
               </div>
 
               <div className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-                {deck.flashcards.length} 件
+                {totalFlashCards} 件
               </div>
             </div>
 
-            {deck.flashcards.length === 0 ? (
+            {totalFlashCards === 0 ? (
               <div className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center">
                 <p className="text-base font-medium text-gray-900">
                   まだカードがありません
@@ -148,7 +168,7 @@ export default async function DeckDetailPage({
                 </div>
 
                 <div className="divide-y divide-gray-200">
-                  {deck.flashcards.map((card) => (
+                  {flashcards.map((card) => (
                     <FlashCardItem
                       key={card.id}
                       deckId={deck.id}
@@ -162,6 +182,14 @@ export default async function DeckDetailPage({
                   ))}
                 </div>
               </div>
+            )}
+
+            {totalFlashCards > 0 && (
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                basePath={ROUTES.deckDetail(deck.id)}
+              />
             )}
           </section>
         </div>
