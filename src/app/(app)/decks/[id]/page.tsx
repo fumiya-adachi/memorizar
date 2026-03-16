@@ -8,6 +8,7 @@ import Pagination from "@/components/ui/Pagination"
 import { ROUTES } from "@/constants/routes"
 import DeleteDeckButton from "./DeleteDeckButton"
 import { deleteDeck } from "./actions"
+import EditDeckNameForm from "./EditDeckNameForm"
 
 export const dynamic = "force-dynamic"
 
@@ -88,10 +89,8 @@ export default async function DeckDetailPage({
           </Link>
 
           <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
-                {deck.name}
-              </h1>
+            <div className="min-w-0 md:flex-1 md:pr-6">
+              <EditDeckNameForm deckId={deck.id} deckName={deck.name} />
             </div>
 
             <div className="flex items-center gap-3">

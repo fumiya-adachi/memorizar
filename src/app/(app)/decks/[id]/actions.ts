@@ -10,6 +10,10 @@ export type FlashCardState = {
   error?: string
 }
 
+export type DeckNameState = {
+  error?: string
+}
+
 async function getAuthenticatedUser() {
   const session = await auth()
 
@@ -208,4 +212,57 @@ export async function deleteDeck(deckId: number) {
 
   revalidatePath(ROUTES.decks)
   redirect(ROUTES.decks)
+}
+
+export async function updateDeckName(
+  deckId: number,
+  _prevState: DeckNameState,
+  formData: FormData
+): Promise<DeckNameState> {
+  const user = await getAuthenticatedUser()
+
+  if (!user) {
+    return { error: "ログインが必要です。" }
+  }
+
+  const name = formData.get("name")?.toString().trim() ?? ""
+
+  if (!name) {
+    return { error: "単語帳名を入力してください。" }
+  }
+
+  const deck = await prisma.deck.findFirst({
+    where: {
+      id: deckId,
+      userId: user.id,
+    },
+  })
+
+  if (!deck) {
+    return { error: "Deckが見つかりません。" }
+  }
+
+  const existingDeck = await prisma.deck.findFirst({
+    where: {
+      userId: user.id,
+      name,
+      NOT: {
+        id: deckId,
+      },
+    },
+  })
+
+  if (existingDeck) {
+    return { error: "同じ名前の単語帳名が既に存在します。" }
+  }
+
+  await prisma.deck.update({
+    where: { id: deckId },
+    data: { name },
+  })
+
+  revalidatePath(ROUTES.deckDetail(deckId))
+  revalidatePath(ROUTES.decks)
+
+  return {}
 }
