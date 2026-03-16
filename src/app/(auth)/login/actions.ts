@@ -2,6 +2,7 @@
 
 import { AuthError } from "next-auth"
 import { signIn } from "../../../auth"
+import { ROUTES } from "@/constants/routes"
 
 type LoginState = {
   error?: string
@@ -18,7 +19,7 @@ export async function login(
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/decks",
+      redirectTo: ROUTES.decks,
     })
   } catch (error) {
     if (error instanceof AuthError) {

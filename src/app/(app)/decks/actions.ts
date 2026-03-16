@@ -3,6 +3,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
+import { ROUTES } from "@/constants/routes"
 
 export type DeckState = {
   error?: string
@@ -54,5 +55,5 @@ export async function createDeck(
     },
   })
 
-  redirect(`/decks/${deck.id}`)
+  redirect(`${ROUTES.deckDetail(deck.id)}`)
 }

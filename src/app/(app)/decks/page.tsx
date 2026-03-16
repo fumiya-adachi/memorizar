@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import DeckForm from "./DeckForm"
 import AIDeckForm from "./AIDeckForm"
+import { ROUTES } from "@/constants/routes"
 
 export default async function DecksPage() {
   const session = await auth()
@@ -85,7 +86,7 @@ export default async function DecksPage() {
               {decks.map((deck) => (
                 <Link
                   key={deck.id}
-                  href={`/decks/${deck.id}`}
+                  href={ROUTES.deckDetail(deck.id)}
                   className="rounded-2xl bg-white p-6 shadow transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-4">

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { ROUTES } from "@/constants/routes"
 
 export type FlashCardState = {
   error?: string
@@ -62,7 +63,7 @@ export async function createFlashCard(
     },
   })
 
-  revalidatePath(`/decks/${deck.id}`)
+  revalidatePath(ROUTES.deckDetail(deck.id))
 
   return {}
 }
@@ -108,7 +109,7 @@ export async function updateFlashCard(
     },
   })
 
-  revalidatePath(`/decks/${deckId}`)
+  revalidatePath(ROUTES.deckDetail(deckId))
 
   return {}
 }
@@ -136,5 +137,5 @@ export async function deleteFlashCard(deckId: number, cardId: number) {
     where: { id: card.id },
   })
 
-  revalidatePath(`/decks/${deckId}`)
+  revalidatePath(ROUTES.deckDetail(deckId))
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { ROUTES } from "@/constants/routes"
 
 function calculateNextReviewDate(isCorrect: boolean) {
   const now = new Date()
@@ -89,5 +90,5 @@ export async function markFlashCardResult(cardId: number, isCorrect: boolean) {
     })
   }
 
-  revalidatePath(`/decks/${deckId}/review`)
+  revalidatePath(ROUTES.deckReview(deckId))
 }

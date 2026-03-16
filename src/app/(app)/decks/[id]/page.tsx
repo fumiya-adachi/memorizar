@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import FlashCardForm from "./FlashCardForm"
 import FlashCardItem from "./FlashCardItem"
+import { ROUTES } from "@/constants/routes"
 
 type DeckDetailPageProps = {
   params: Promise<{
@@ -74,14 +75,14 @@ export default async function DeckDetailPage({
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-3">
                 <Link
-                  href={`/decks/${deck.id}/review?mode=normal`}
+                  href={`${ROUTES.deckReview(deck.id)}?mode=normal`}
                   className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
                   全体を学習
                 </Link>
 
                 <Link
-                  href={`/decks/${deck.id}/review?mode=weak`}
+                  href={`${ROUTES.deckReview(deck.id)}?mode=weak`}
                   className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
                 >
                   苦手なカードを復習

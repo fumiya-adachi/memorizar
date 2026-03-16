@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Select } from "@/components/ui/select"
+import { ROUTES } from "@/constants/routes"
 
 export default function AIDeckForm() {
   const router = useRouter()
@@ -38,7 +39,7 @@ export default function AIDeckForm() {
         return
       }
 
-      router.push(`/decks/${data.deckId}`)
+      router.push(ROUTES.deckDetail(data.deckId))
       router.refresh()
     } catch (err) {
       console.error(err)
