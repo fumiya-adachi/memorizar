@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ROUTES } from "@/constants/routes"
+import { redirect } from "next/navigation"
 
 export type FlashCardState = {
   error?: string
@@ -138,4 +139,73 @@ export async function deleteFlashCard(deckId: number, cardId: number) {
   })
 
   revalidatePath(ROUTES.deckDetail(deckId))
+}
+
+export async function deleteDeck(deckId: number) {
+  const user = await getAuthenticatedUser()
+
+  if (!user) {
+    return
+  }
+
+  const deck = await prisma.deck.findFirst({
+    where: {
+      id: deckId,
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      flashcards: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  })
+
+  if (!deck) {
+    return
+  }
+
+  const cardIds = deck.flashcards.map((card) => card.id)
+
+  await prisma.$transaction(async (tx) => {
+    if (cardIds.length > 0) {
+      await tx.reviewHistory.deleteMany({
+        where: {
+          userId: user.id,
+          cardId: {
+            in: cardIds,
+          },
+        },
+      })
+
+      await tx.flashCardProgress.deleteMany({
+        where: {
+          userId: user.id,
+          cardId: {
+            in: cardIds,
+          },
+        },
+      })
+
+      await tx.flashCard.deleteMany({
+        where: {
+          id: {
+            in: cardIds,
+          },
+          userId: user.id,
+        },
+      })
+    }
+
+    await tx.deck.delete({
+      where: {
+        id: deck.id,
+      },
+    })
+  })
+
+  revalidatePath(ROUTES.decks)
+  redirect(ROUTES.decks)
 }
