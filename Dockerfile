@@ -1,17 +1,13 @@
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
-# package.jsonを先にコピー（キャッシュ効かせる）
 COPY package*.json ./
+COPY prisma ./prisma
+RUN npm ci
 
-# 依存関係インストール
-RUN npm install
-
-# ソースコピー
 COPY . .
 
-# Next.js dev server
 EXPOSE 3000
 
 CMD ["npm", "run", "dev"]
