@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
+import Header from "@/components/Header"
 
 
 const geistSans = Geist({
@@ -16,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Memorizar",
   description: "Memorizar is a flashcard app for efficient vocabulary and knowledge memorization.",
+  icons: {
+    icon: "/icon.svg",
+  }
 };
 
 export default function RootLayout({
@@ -28,6 +32,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Header />
         {children}
       </body>
     </html>
