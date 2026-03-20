@@ -10,7 +10,7 @@ export default function DeckForm() {
   const [state, formAction, isPending] = useActionState(createDeck, initialState)
 
   return (
-    <form action={formAction} className="mt-4 space-y-4">
+    <form action={formAction} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <Select
@@ -52,7 +52,7 @@ export default function DeckForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+        className="rounded-xl bg-gray-900 px-4 py-3 font-medium text-white disabled:opacity-50"
       >
         {isPending ? "作成中..." : "単語帳を作成"}
       </button>
