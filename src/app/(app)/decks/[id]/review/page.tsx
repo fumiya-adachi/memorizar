@@ -2,6 +2,8 @@ import { notFound, redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import ReviewCard from "./ReviewCard"
+import ReviewNavigation from "./ReviewNavigation"
+import { ROUTES } from "@/constants/routes"
 
 type ReviewPageProps = {
   params: Promise<{
@@ -9,6 +11,7 @@ type ReviewPageProps = {
   }>
   searchParams: Promise<{
     mode?: string
+    index?: string
   }>
 }
 
@@ -84,7 +87,7 @@ export default async function ReviewPage({
   }
 
   const { id } = await params
-  const { mode = "normal" } = await searchParams
+  const { mode = "normal", index = "0" } = await searchParams
 
   const deckId = Number(id)
 
@@ -132,9 +135,11 @@ export default async function ReviewPage({
     )
   }
 
+  const reviewMode = mode === "weak" ? "weak" : "normal"
+
   let sortedCards = [...cards]
 
-  if (mode === "weak") {
+  if (reviewMode === "weak") {
     // 苦手モード
     sortedCards = sortByWeakness(cards)
   } else {
@@ -143,8 +148,17 @@ export default async function ReviewPage({
     sortedCards = sortByWeakness(cards)
   }
 
-  const card = sortedCards[0]
+  const parsedIndex = Number(index)
+  const currentIndex = Number.isNaN(parsedIndex)
+    ? 0
+    : Math.min(Math.max(parsedIndex, 0), sortedCards.length - 1)
+
+  const card = sortedCards[currentIndex]
   const progress = card.progress[0] ?? null
+  const prevIndex = Math.max(currentIndex - 1, 0)
+  const nextIndex = Math.min(currentIndex + 1, sortedCards.length - 1)
+  const prevHref = `${ROUTES.deckReview(deck.id)}?mode=${reviewMode}&index=${prevIndex}`
+  const nextHref = `${ROUTES.deckReview(deck.id)}?mode=${reviewMode}&index=${nextIndex}`
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
@@ -155,11 +169,18 @@ export default async function ReviewPage({
             {mode === "weak" ? "苦手カード復習" : "全体復習"}
           </h1> */}
           <p className="mt-2 text-sm text-gray-500">
-            {mode === "weak"
+            {reviewMode === "weak"
               ? "正答率が低いカードを優先して出題します。"
               : "Deck内の全カードを対象に、正答率が低い順で出題します。"}
           </p>
         </div>
+
+        <ReviewNavigation
+          currentIndex={currentIndex}
+          totalCount={sortedCards.length}
+          prevHref={prevHref}
+          nextHref={nextHref}
+        />
 
         <ReviewCard
           key={card.id}
