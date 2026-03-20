@@ -24,15 +24,20 @@ model Deck {
   id        Int      @id @default(autoincrement())
   userId    Int
   name      String
+  isPublic  Boolean  @default(false)
+  sourceDeckId Int?
   questionLanguage String?
   answerLanguage   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user       User        @relation(fields: [userId], references: [id])
-  flashcards FlashCard[]
+  user          User        @relation(fields: [userId], references: [id])
+  sourceDeck    Deck?       @relation("DeckSource", fields: [sourceDeckId], references: [id], onDelete: SetNull)
+  importedDecks Deck[]      @relation("DeckSource")
+  flashcards    FlashCard[]
 
   @@unique([userId, name])
+  @@unique([userId, sourceDeckId])
 }
 
 model FlashCard {
