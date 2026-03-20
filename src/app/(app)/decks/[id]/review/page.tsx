@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import ReviewCard from "./ReviewCard"
 import ReviewNavigation from "./ReviewNavigation"
 import { ROUTES } from "@/constants/routes"
+import { requireCurrentUser } from "@/lib/currentUser"
 
 type ReviewPageProps = {
   params: Promise<{
@@ -82,19 +82,7 @@ export default async function ReviewPage({
   params,
   searchParams,
 }: ReviewPageProps) {
-  const session = await auth()
-
-  if (!session?.user?.email) {
-    redirect("/login")
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  })
-
-  if (!user) {
-    redirect("/login")
-  }
+  const user = await requireCurrentUser()
 
   const { id } = await params
   const { index = "0", accuracy = "all" } = await searchParams

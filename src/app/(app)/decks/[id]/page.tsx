@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import FlashCardForm from "./FlashCardForm"
 import FlashCardItem from "./FlashCardItem"
@@ -9,6 +8,7 @@ import { ROUTES } from "@/constants/routes"
 import DeleteDeckButton from "./DeleteDeckButton"
 import { deleteDeck } from "./actions"
 import EditDeckNameForm from "./EditDeckNameForm"
+import { requireCurrentUser } from "@/lib/currentUser"
 
 export const dynamic = "force-dynamic"
 
@@ -25,19 +25,7 @@ export default async function DeckDetailPage({
   params,
   searchParams,
 }: DeckDetailPageProps) {
-  const session = await auth()
-
-  if (!session?.user?.email) {
-    redirect(ROUTES.login)
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  })
-
-  if (!user) {
-    redirect(ROUTES.login)
-  }
+  const user = await requireCurrentUser()
 
   const { id } = await params
   const { page: pageQuery = "1" } = await searchParams

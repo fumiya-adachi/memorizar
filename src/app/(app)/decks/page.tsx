@@ -1,25 +1,12 @@
 import Link from "next/link"
-import { redirect } from "next/navigation"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import DeckForm from "./DeckForm"
 import AIDeckForm from "./AIDeckForm"
 import { ROUTES } from "@/constants/routes"
+import { requireCurrentUser } from "@/lib/currentUser"
 
 export default async function DecksPage() {
-  const session = await auth()
-
-  if (!session?.user?.email) {
-    redirect("/login")
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  })
-
-  if (!user) {
-    redirect("/login")
-  }
+  const user = await requireCurrentUser()
 
   const decks = await prisma.deck.findMany({
     where: { userId: user.id },

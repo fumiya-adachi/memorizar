@@ -1,9 +1,9 @@
 "use server"
 
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { ROUTES } from "@/constants/routes"
+import { getCurrentUser } from "@/lib/currentUser"
 
 export type DeckState = {
   error?: string
@@ -13,9 +13,9 @@ export async function createDeck(
   _prevState: DeckState,
   formData: FormData
 ): Promise<DeckState> {
-  const session = await auth()
+  const user = await getCurrentUser()
 
-  if (!session?.user?.email) {
+  if (!user) {
     return { error: "ログインが必要です。" }
   }
 
@@ -25,14 +25,6 @@ export async function createDeck(
 
   if (!name) {
     return { error: "単語帳名を入力してください。" }
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  })
-
-  if (!user) {
-    return { error: "ユーザーが見つかりません。" }
   }
 
   const existingDeck = await prisma.deck.findFirst({

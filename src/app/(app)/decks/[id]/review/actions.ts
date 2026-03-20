@@ -1,9 +1,9 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ROUTES } from "@/constants/routes"
+import { getCurrentUser } from "@/lib/currentUser"
 
 function calculateNextReviewDate(isCorrect: boolean) {
   const now = new Date()
@@ -18,18 +18,10 @@ function calculateNextReviewDate(isCorrect: boolean) {
 }
 
 export async function markFlashCardResult(cardId: number, isCorrect: boolean) {
-  const session = await auth()
-
-  if (!session?.user?.email) {
-    throw new Error("Unauthorized")
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  })
+  const user = await getCurrentUser()
 
   if (!user) {
-    throw new Error("User not found")
+    throw new Error("Unauthorized")
   }
 
   const card = await prisma.flashCard.findFirst({

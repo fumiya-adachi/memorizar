@@ -1,10 +1,10 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ROUTES } from "@/constants/routes"
 import { redirect } from "next/navigation"
+import { getCurrentUser } from "@/lib/currentUser"
 
 export type FlashCardState = {
   error?: string
@@ -14,26 +14,12 @@ export type DeckNameState = {
   error?: string
 }
 
-async function getAuthenticatedUser() {
-  const session = await auth()
-
-  if (!session?.user?.email) {
-    return null
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  })
-
-  return user
-}
-
 export async function createFlashCard(
   deckId: number,
   _prevState: FlashCardState,
   formData: FormData
 ): Promise<FlashCardState> {
-  const user = await getAuthenticatedUser()
+  const user = await getCurrentUser()
 
   if (!user) {
     return { error: "ログインが必要です。" }
@@ -79,7 +65,7 @@ export async function updateFlashCard(
   _prevState: FlashCardState,
   formData: FormData
 ): Promise<FlashCardState> {
-  const user = await getAuthenticatedUser()
+  const user = await getCurrentUser()
 
   if (!user) {
     return { error: "ログインが必要です。" }
@@ -120,7 +106,7 @@ export async function updateFlashCard(
 }
 
 export async function deleteFlashCard(deckId: number, cardId: number) {
-  const user = await getAuthenticatedUser()
+  const user = await getCurrentUser()
 
   if (!user) {
     return
@@ -146,7 +132,7 @@ export async function deleteFlashCard(deckId: number, cardId: number) {
 }
 
 export async function deleteDeck(deckId: number) {
-  const user = await getAuthenticatedUser()
+  const user = await getCurrentUser()
 
   if (!user) {
     return
@@ -219,7 +205,7 @@ export async function updateDeckName(
   _prevState: DeckNameState,
   formData: FormData
 ): Promise<DeckNameState> {
-  const user = await getAuthenticatedUser()
+  const user = await getCurrentUser()
 
   if (!user) {
     return { error: "ログインが必要です。" }
