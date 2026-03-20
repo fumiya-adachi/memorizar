@@ -13,7 +13,22 @@ type ReviewPageProps = {
   searchParams: Promise<{
     mode?: string
     index?: string
+    accuracy?: string
   }>
+}
+
+type AccuracyFilter = "all" | "unlearned" | "low" | "mid" | "high"
+
+const ACCURACY_FILTER_OPTIONS: { value: AccuracyFilter; label: string }[] = [
+  { value: "all", label: "すべて" },
+  { value: "unlearned", label: "未学習" },
+  { value: "low", label: "0-49%" },
+  { value: "mid", label: "50-79%" },
+  { value: "high", label: "80-100%" },
+]
+
+function isAccuracyFilter(value: string): value is AccuracyFilter {
+  return ["all", "unlearned", "low", "mid", "high"].includes(value)
 }
 
 function getAccuracy(progress?: {
@@ -69,6 +84,38 @@ function sortByWeakness<
   })
 }
 
+function matchesAccuracyFilter(
+  progress: {
+    correctCount: number
+    reviewCount: number
+  } | null,
+  filter: AccuracyFilter
+) {
+  if (filter === "all") {
+    return true
+  }
+
+  const accuracy = getAccuracy(progress)
+
+  if (filter === "unlearned") {
+    return accuracy < 0
+  }
+
+  if (accuracy < 0) {
+    return false
+  }
+
+  if (filter === "low") {
+    return accuracy < 0.5
+  }
+
+  if (filter === "mid") {
+    return accuracy >= 0.5 && accuracy < 0.8
+  }
+
+  return accuracy >= 0.8
+}
+
 export default async function ReviewPage({
   params,
   searchParams,
@@ -88,7 +135,7 @@ export default async function ReviewPage({
   }
 
   const { id } = await params
-  const { mode = "normal", index = "0" } = await searchParams
+  const { mode = "normal", index = "0", accuracy = "all" } = await searchParams
 
   const deckId = Number(id)
 
@@ -143,6 +190,7 @@ export default async function ReviewPage({
   }
 
   const reviewMode = mode === "weak" ? "weak" : "normal"
+  const accuracyFilter = isAccuracyFilter(accuracy) ? accuracy : "all"
 
   let sortedCards = [...cards]
 
@@ -155,19 +203,71 @@ export default async function ReviewPage({
     sortedCards = sortByWeakness(cards)
   }
 
+  const filteredCards = sortedCards.filter((candidate) =>
+    matchesAccuracyFilter(candidate.progress[0] ?? null, accuracyFilter)
+  )
+
+  const getReviewHref = (nextIndex: number, nextFilter: AccuracyFilter = accuracyFilter) => {
+    return `${ROUTES.deckReview(deck.id)}?mode=${reviewMode}&accuracy=${nextFilter}&index=${nextIndex}`
+  }
+
+  if (filteredCards.length === 0) {
+    return (
+      <main className="min-h-screen bg-gray-50 px-4 py-10">
+        <div className="mx-auto max-w-2xl">
+          <div className="mb-6">
+            <Link
+              href={ROUTES.deckDetail(deck.id)}
+              className="inline-flex items-center text-sm font-medium text-gray-500 transition hover:text-gray-900 hover:underline underline-offset-4"
+            >
+              ← 単語帳へ戻る
+            </Link>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {ACCURACY_FILTER_OPTIONS.map((option) => {
+                const isActive = option.value === accuracyFilter
+
+                return (
+                  <Link
+                    key={option.value}
+                    href={getReviewHref(0, option.value)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                      isActive
+                        ? "bg-gray-900 text-white"
+                        : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {option.label}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-3xl bg-white p-8 shadow-sm">
+            <h1 className="text-2xl font-bold text-gray-900">復習</h1>
+            <p className="mt-4 text-sm text-gray-500">
+              この条件に一致する問題がありません。フィルタを変更してください。
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   const parsedIndex = Number(index)
   const currentIndex = Number.isNaN(parsedIndex)
     ? 0
-    : Math.min(Math.max(parsedIndex, 0), sortedCards.length - 1)
+    : Math.min(Math.max(parsedIndex, 0), filteredCards.length - 1)
 
-  const card = sortedCards[currentIndex]
+  const card = filteredCards[currentIndex]
   const progress = card.progress[0] ?? null
   const prevIndex = Math.max(currentIndex - 1, 0)
-  const nextIndex = Math.min(currentIndex + 1, sortedCards.length - 1)
+  const nextIndex = Math.min(currentIndex + 1, filteredCards.length - 1)
   const firstIndex = 0
-  const prevHref = `${ROUTES.deckReview(deck.id)}?mode=${reviewMode}&index=${prevIndex}`
-  const nextHref = `${ROUTES.deckReview(deck.id)}?mode=${reviewMode}&index=${nextIndex}`
-  const firstHref = `${ROUTES.deckReview(deck.id)}?mode=${reviewMode}&index=${firstIndex}`
+  const prevHref = getReviewHref(prevIndex)
+  const nextHref = getReviewHref(nextIndex)
+  const firstHref = getReviewHref(firstIndex)
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
@@ -179,6 +279,25 @@ export default async function ReviewPage({
           >
             ← 単語帳へ戻る
           </Link>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {ACCURACY_FILTER_OPTIONS.map((option) => {
+              const isActive = option.value === accuracyFilter
+
+              return (
+                <Link
+                  key={option.value}
+                  href={getReviewHref(0, option.value)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                    isActive
+                      ? "bg-gray-900 text-white"
+                      : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {option.label}
+                </Link>
+              )
+            })}
+          </div>
           {/* <p className="text-sm font-medium text-gray-500">{deck.name}</p> */}
           {/* <h1 className="mt-2 text-3xl font-bold text-gray-900">
             {mode === "weak" ? "苦手カード復習" : "全体復習"}
@@ -192,7 +311,7 @@ export default async function ReviewPage({
 
         <ReviewNavigation
           currentIndex={currentIndex}
-          totalCount={sortedCards.length}
+          totalCount={filteredCards.length}
           prevHref={prevHref}
           nextHref={nextHref}
           firstHref={firstHref}
