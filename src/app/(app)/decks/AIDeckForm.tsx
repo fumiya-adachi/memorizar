@@ -28,7 +28,7 @@ export default function AIDeckForm() {
         body: JSON.stringify({
           topic,
           count,
-          questionLanguage
+          questionLanguage,
         }),
       })
 

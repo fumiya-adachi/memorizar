@@ -43,7 +43,7 @@ export async function createDeck(
       name,
       userId: user.id,
       questionLanguage: questionLanguage,
-      answerLanguage: answerLanguage
+      answerLanguage: answerLanguage,
     },
   })
 
