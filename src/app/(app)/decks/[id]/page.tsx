@@ -96,19 +96,11 @@ export default async function DeckDetailPage({
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-3">
                 <Link
-                  href={`${ROUTES.deckReview(deck.id)}?mode=normal`}
+                  href={ROUTES.deckReview(deck.id)}
                   className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
                   学習する
                 </Link>
-
-                {/*　TODO: ロジックを調整するs */}
-                {/* <Link
-                  href={`${ROUTES.deckReview(deck.id)}?mode=weak`}
-                  className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
-                >
-                  苦手なカードを復習
-                </Link> */}
               </div>
             </div>
           </div>
