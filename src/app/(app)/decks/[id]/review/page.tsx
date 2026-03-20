@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
@@ -126,6 +127,12 @@ export default async function ReviewPage({
     return (
       <main className="min-h-screen bg-gray-50 px-4 py-10">
         <div className="mx-auto max-w-2xl rounded-3xl bg-white p-8 shadow-sm">
+          <Link
+            href={ROUTES.deckDetail(deck.id)}
+            className="inline-flex items-center text-sm font-medium text-gray-500 transition hover:text-gray-900 hover:underline underline-offset-4"
+          >
+            ← 単語帳へ戻る
+          </Link>
           <h1 className="text-2xl font-bold text-gray-900">復習</h1>
           <p className="mt-4 text-sm text-gray-500">
             このDeckにはまだカードがありません。
@@ -164,15 +171,21 @@ export default async function ReviewPage({
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
+          <Link
+            href={ROUTES.deckDetail(deck.id)}
+            className="inline-flex items-center text-sm font-medium text-gray-500 transition hover:text-gray-900 hover:underline underline-offset-4"
+          >
+            ← 単語帳へ戻る
+          </Link>
           {/* <p className="text-sm font-medium text-gray-500">{deck.name}</p> */}
           {/* <h1 className="mt-2 text-3xl font-bold text-gray-900">
             {mode === "weak" ? "苦手カード復習" : "全体復習"}
           </h1> */}
-          <p className="mt-2 text-sm text-gray-500">
+          {/* <p className="mt-2 text-sm text-gray-500">
             {reviewMode === "weak"
               ? "正答率が低いカードを優先して出題します。"
               : "Deck内の全カードを対象に、正答率が低い順で出題します。"}
-          </p>
+          </p> */}
         </div>
 
         <ReviewNavigation
