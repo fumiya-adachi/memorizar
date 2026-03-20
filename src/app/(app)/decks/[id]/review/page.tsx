@@ -11,7 +11,6 @@ type ReviewPageProps = {
     id: string
   }>
   searchParams: Promise<{
-    mode?: string
     index?: string
     accuracy?: string
   }>
@@ -37,51 +36,6 @@ function getAccuracy(progress?: {
 } | null) {
   if (!progress || progress.reviewCount === 0) return -1
   return progress.correctCount / progress.reviewCount
-}
-
-function sortByWeakness<
-  T extends {
-    createdAt: Date
-    progress: {
-      correctCount: number
-      wrongCount: number
-      reviewCount: number
-      nextReview: Date | null
-      lastReviewed: Date | null
-    }[]
-  }
->(cards: T[]) {
-  return [...cards].sort((a, b) => {
-    const progressA = a.progress[0] ?? null
-    const progressB = b.progress[0] ?? null
-
-    const accuracyA = getAccuracy(progressA)
-    const accuracyB = getAccuracy(progressB)
-
-    // 正答率が低い順
-    if (accuracyA !== accuracyB) {
-      return accuracyA - accuracyB
-    }
-
-    // 復習回数が少ない順
-    const reviewCountA = progressA?.reviewCount ?? 0
-    const reviewCountB = progressB?.reviewCount ?? 0
-
-    if (reviewCountA !== reviewCountB) {
-      return reviewCountA - reviewCountB
-    }
-
-    // 間違えた回数が多いものを優先
-    const wrongCountA = progressA?.wrongCount ?? 0
-    const wrongCountB = progressB?.wrongCount ?? 0
-
-    if (wrongCountA !== wrongCountB) {
-      return wrongCountB - wrongCountA
-    }
-
-    // 最後は古いカード順
-    return a.createdAt.getTime() - b.createdAt.getTime()
-  })
 }
 
 function sortByCreatedAt<
@@ -143,7 +97,7 @@ export default async function ReviewPage({
   }
 
   const { id } = await params
-  const { mode = "normal", index = "0", accuracy = "all" } = await searchParams
+  const { index = "0", accuracy = "all" } = await searchParams
 
   const deckId = Number(id)
 
@@ -197,26 +151,16 @@ export default async function ReviewPage({
     )
   }
 
-  const reviewMode = mode === "weak" ? "weak" : "normal"
   const accuracyFilter = isAccuracyFilter(accuracy) ? accuracy : "all"
 
-  let sortedCards = [...cards]
-
-  if (reviewMode === "weak") {
-    // 苦手モード
-    sortedCards = sortByWeakness(cards)
-  } else {
-    // 通常モード
-    // 登録順（古いカードから）
-    sortedCards = sortByCreatedAt(cards)
-  }
+  const sortedCards = sortByCreatedAt(cards)
 
   const filteredCards = sortedCards.filter((candidate) =>
     matchesAccuracyFilter(candidate.progress[0] ?? null, accuracyFilter)
   )
 
   const getReviewHref = (nextIndex: number, nextFilter: AccuracyFilter = accuracyFilter) => {
-    return `${ROUTES.deckReview(deck.id)}?mode=${reviewMode}&accuracy=${nextFilter}&index=${nextIndex}`
+    return `${ROUTES.deckReview(deck.id)}?accuracy=${nextFilter}&index=${nextIndex}`
   }
 
   if (filteredCards.length === 0) {
@@ -306,15 +250,6 @@ export default async function ReviewPage({
               )
             })}
           </div>
-          {/* <p className="text-sm font-medium text-gray-500">{deck.name}</p> */}
-          {/* <h1 className="mt-2 text-3xl font-bold text-gray-900">
-            {mode === "weak" ? "苦手カード復習" : "全体復習"}
-          </h1> */}
-          {/* <p className="mt-2 text-sm text-gray-500">
-            {reviewMode === "weak"
-              ? "正答率が低いカードを優先して出題します。"
-              : "Deck内の全カードを対象に、正答率が低い順で出題します。"}
-          </p> */}
         </div>
 
         <ReviewNavigation
