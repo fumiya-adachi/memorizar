@@ -137,11 +137,7 @@ export default async function DecksPage({ searchParams }: DecksPageProps) {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">あなたの単語帳</h1>
-        </div>
-
-        <details open className="group mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <details open={deckSummaries.length === 0} className="group mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <summary className="flex cursor-pointer list-none items-center gap-2 text-lg font-semibold text-gray-900">
             <svg
               aria-hidden="true"
@@ -188,6 +184,10 @@ export default async function DecksPage({ searchParams }: DecksPageProps) {
             <DeckForm />
           </div>
         </details>
+
+        <div className="mt-10 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">あなたの単語帳</h1>
+        </div>
 
         <DeckFilterForm
           questionLanguage={questionLanguage}
