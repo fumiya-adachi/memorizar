@@ -28,7 +28,7 @@ export default function Header() {
                 isPublicDecksPage ? "text-gray-900" : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              みんなの公開単語帳を探す
+              公開単語帳を探す
             </Link>
           )}
         </div>

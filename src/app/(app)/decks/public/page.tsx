@@ -39,7 +39,7 @@ export default async function PublicDecksPage() {
           >
             ← あなたの単語帳へ戻る
           </Link>
-          <h1 className="mt-3 text-2xl font-bold text-gray-900">みんなの公開単語帳</h1>
+          <h1 className="mt-3 text-2xl font-bold text-gray-900">公開単語帳</h1>
           <p className="mt-2 text-sm text-gray-500">
             他のユーザーが公開した単語帳を探して取り込めます。取り込んだ単語帳はあなた専用として保存されます。
           </p>

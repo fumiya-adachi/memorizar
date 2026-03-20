@@ -74,7 +74,7 @@ export default async function PublicDeckDetailPage({ params }: PublicDeckDetailP
             href={ROUTES.publicDecks}
             className="inline-flex items-center text-sm font-medium text-gray-500 transition hover:text-gray-900 hover:underline underline-offset-4"
           >
-            ← みんなの公開単語帳へ戻る
+            ← 公開単語帳へ戻る
           </Link>
 
           <h1 className="mt-4 text-2xl font-bold text-gray-900">{deck.name}</h1>
