@@ -1,7 +1,15 @@
 import Link from "next/link"
 import { ROUTES } from "@/constants/routes"
+import DeckFilterForm from "@/components/decks/DeckFilterForm"
 import { requireCurrentUser } from "@/lib/currentUser"
 import { prisma } from "@/lib/prisma"
+import {
+  getDaysFromFilter,
+  getLanguageLabel,
+  isCreatedWithinFilter,
+  isQuestionLanguageFilter,
+  isSortFilter,
+} from "@/features/decks/filters"
 import { importPublicDeck } from "./actions"
 
 type PublicDecksPageProps = {
@@ -12,59 +20,13 @@ type PublicDecksPageProps = {
   }>
 }
 
-type CreatedWithinFilter = "all" | "7d" | "30d" | "365d"
-type SortFilter = "newest" | "oldest"
-
-const QUESTION_LANGUAGE_OPTIONS = [
-  { value: "all", label: "すべての言語" },
-  { value: "en-US", label: "英語" },
-  { value: "es-ES", label: "スペイン語" },
-  { value: "fr-FR", label: "フランス語" },
-  { value: "de-DE", label: "ドイツ語" },
-] as const
-
-const SORT_OPTIONS: { value: SortFilter; label: string }[] = [
-  { value: "newest", label: "新しい順" },
-  { value: "oldest", label: "古い順" },
-]
-
-function isCreatedWithinFilter(value: string): value is CreatedWithinFilter {
-  return ["all", "7d", "30d", "365d"].includes(value)
-}
-
-function isSortFilter(value: string): value is SortFilter {
-  return ["newest", "oldest"].includes(value)
-}
-
-function getDaysFromFilter(filter: CreatedWithinFilter) {
-  switch (filter) {
-    case "7d":
-      return 7
-    case "30d":
-      return 30
-    case "365d":
-      return 365
-    default:
-      return null
-  }
-}
-
-function getLanguageLabel(value: string | null) {
-  if (!value) {
-    return "指定なし"
-  }
-
-  return QUESTION_LANGUAGE_OPTIONS.find((option) => option.value === value)?.label ?? value
-}
-
 export default async function PublicDecksPage({ searchParams }: PublicDecksPageProps) {
   const user = await requireCurrentUser()
   const params = await searchParams
 
-  const questionLanguageValues = QUESTION_LANGUAGE_OPTIONS.map((option) => option.value)
-
-  const questionLanguage = questionLanguageValues.includes(params.questionLanguage as (typeof questionLanguageValues)[number])
-    ? (params.questionLanguage as (typeof questionLanguageValues)[number])
+  const questionLanguage =
+    params.questionLanguage && isQuestionLanguageFilter(params.questionLanguage)
+    ? params.questionLanguage
     : "all"
 
   const createdWithin = params.createdWithin && isCreatedWithinFilter(params.createdWithin)
@@ -123,67 +85,13 @@ export default async function PublicDecksPage({ searchParams }: PublicDecksPageP
           </p>
         </div>
 
-        <section className="mb-6 rounded-2xl bg-white p-4 shadow-sm md:p-5">
-          <form className="grid grid-cols-1 gap-3 md:grid-cols-[0.8fr_0.8fr_0.8fr_auto_auto] md:items-end">
-            <div>
-              <label
-                htmlFor="questionLanguage"
-                className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500"
-              >
-                言語
-              </label>
-              <select
-                id="questionLanguage"
-                name="questionLanguage"
-                defaultValue={questionLanguage}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-900"
-              >
-                {QUESTION_LANGUAGE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="sort"
-                className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500"
-              >
-                並び順
-              </label>
-              <select
-                id="sort"
-                name="sort"
-                defaultValue={sort}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-900"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              type="submit"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-            >
-              絞り込む
-            </button>
-
-            {hasFilter ? (
-              <Link
-                href={ROUTES.publicDecks}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                リセット
-              </Link>
-            ) : null}
-          </form>
-        </section>
+        <DeckFilterForm
+          questionLanguage={questionLanguage}
+          createdWithin={createdWithin}
+          sort={sort}
+          hasFilter={hasFilter}
+          resetHref={ROUTES.publicDecks}
+        />
 
         {publicDecks.length === 0 ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
