@@ -29,13 +29,6 @@ export default async function DecksPage() {
               単語帳リスト
             </h1>
           </div>
-
-          <Link
-            href={ROUTES.publicDecks}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-          >
-            公開単語帳を見る
-          </Link>
         </div>
 
         <section className="mt-8 rounded-2xl bg-white p-6 shadow">
