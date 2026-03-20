@@ -136,58 +136,51 @@ export default async function DecksPage({ searchParams }: DecksPageProps) {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <DecksPageClient deckSummariesLength={deckSummaries.length}>
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">あなたの単語帳</h1>
-            <p className="mt-2 text-sm text-gray-500">{deckSummaries.length}件</p>
-          </div>
+        <DeckFilterForm
+          questionLanguage={questionLanguage}
+          createdWithin={createdWithin}
+          sort={sort}
+          hasFilter={hasFilter}
+          resetHref={ROUTES.decks}
+        />
 
-          <DeckFilterForm
-            questionLanguage={questionLanguage}
-            createdWithin={createdWithin}
-            sort={sort}
-            hasFilter={hasFilter}
-            resetHref={ROUTES.decks}
-          />
-
-          <section className="mt-8">
-            {deckSummaries.length === 0 ? (
-              <div className="rounded-2xl bg-white p-8 text-center shadow">
-                <p className="text-base font-medium text-gray-900">
-                  条件に一致する単語帳はありません
-                </p>
-                <p className="mt-2 text-sm text-gray-500">
-                  絞り込み条件を変更するか、新しい単語帳を作成してください。
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {deckSummaries.map((deck) => (
-                  <Link
-                    key={deck.id}
-                    href={ROUTES.deckDetail(deck.id)}
-                    className="rounded-2xl bg-white p-6 shadow transition hover:-translate-y-0.5 hover:shadow-md"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {deck.name}
-                        </h3>
-                        <p className="mt-2 text-sm text-gray-500">
-                          学習言語: {getLanguageLabel(deck.questionLanguage)}
-                        </p>
-                      </div>
-
-                      <div className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
-                        {deck.cardCount} cards
-                      </div>
+        <section className="mt-8">
+          {deckSummaries.length === 0 ? (
+            <div className="rounded-2xl bg-white p-8 text-center shadow">
+              <p className="text-base font-medium text-gray-900">
+                条件に一致する単語帳はありません
+              </p>
+              <p className="mt-2 text-sm text-gray-500">
+                絞り込み条件を変更するか、新しい単語帳を作成してください。
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {deckSummaries.map((deck) => (
+                <Link
+                  key={deck.id}
+                  href={ROUTES.deckDetail(deck.id)}
+                  className="rounded-2xl bg-white p-6 shadow transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {deck.name}
+                      </h3>
+                      <p className="mt-2 text-sm text-gray-500">
+                        学習言語: {getLanguageLabel(deck.questionLanguage)}
+                      </p>
                     </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
+
+                    <div className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+                      {deck.cardCount} cards
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
       </DecksPageClient>
     </main>
   )
