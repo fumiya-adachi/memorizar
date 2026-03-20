@@ -4,12 +4,88 @@ import { requireCurrentUser } from "@/lib/currentUser"
 import { prisma } from "@/lib/prisma"
 import { importPublicDeck } from "./actions"
 
-export default async function PublicDecksPage() {
+type PublicDecksPageProps = {
+  searchParams: Promise<{
+    questionLanguage?: string
+    createdWithin?: string
+    sort?: string
+  }>
+}
+
+type CreatedWithinFilter = "all" | "7d" | "30d" | "365d"
+type SortFilter = "newest" | "oldest"
+
+const QUESTION_LANGUAGE_OPTIONS = [
+  { value: "all", label: "すべての言語" },
+  { value: "en-US", label: "英語" },
+  { value: "es-ES", label: "スペイン語" },
+  { value: "fr-FR", label: "フランス語" },
+  { value: "de-DE", label: "ドイツ語" },
+] as const
+
+const SORT_OPTIONS: { value: SortFilter; label: string }[] = [
+  { value: "newest", label: "新しい順" },
+  { value: "oldest", label: "古い順" },
+]
+
+function isCreatedWithinFilter(value: string): value is CreatedWithinFilter {
+  return ["all", "7d", "30d", "365d"].includes(value)
+}
+
+function isSortFilter(value: string): value is SortFilter {
+  return ["newest", "oldest"].includes(value)
+}
+
+function getDaysFromFilter(filter: CreatedWithinFilter) {
+  switch (filter) {
+    case "7d":
+      return 7
+    case "30d":
+      return 30
+    case "365d":
+      return 365
+    default:
+      return null
+  }
+}
+
+function getLanguageLabel(value: string | null) {
+  if (!value) {
+    return "指定なし"
+  }
+
+  return QUESTION_LANGUAGE_OPTIONS.find((option) => option.value === value)?.label ?? value
+}
+
+export default async function PublicDecksPage({ searchParams }: PublicDecksPageProps) {
   const user = await requireCurrentUser()
+  const params = await searchParams
+
+  const questionLanguageValues = QUESTION_LANGUAGE_OPTIONS.map((option) => option.value)
+
+  const questionLanguage = questionLanguageValues.includes(params.questionLanguage as (typeof questionLanguageValues)[number])
+    ? (params.questionLanguage as (typeof questionLanguageValues)[number])
+    : "all"
+
+  const createdWithin = params.createdWithin && isCreatedWithinFilter(params.createdWithin)
+    ? params.createdWithin
+    : "all"
+
+  const sort = params.sort && isSortFilter(params.sort) ? params.sort : "newest"
+
+  const days = getDaysFromFilter(createdWithin)
+  const createdAtFilter = days
+    ? {
+        gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000),
+      }
+    : undefined
 
   const publicDecks = await prisma.deck.findMany({
     where: {
       isPublic: true,
+      sourceDeckId: null,
+      ...(questionLanguage !== "all" ? { questionLanguage } : {}),
+      ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
     },
     include: {
       user: {
@@ -25,9 +101,11 @@ export default async function PublicDecksPage() {
       },
     },
     orderBy: {
-      createdAt: "desc",
+      createdAt: sort === "newest" ? "desc" : "asc",
     },
   })
+
+  const hasFilter = questionLanguage !== "all" || createdWithin !== "all" || sort !== "newest"
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
@@ -45,11 +123,73 @@ export default async function PublicDecksPage() {
           </p>
         </div>
 
+        <section className="mb-6 rounded-2xl bg-white p-4 shadow-sm md:p-5">
+          <form className="grid grid-cols-1 gap-3 md:grid-cols-[0.8fr_0.8fr_0.8fr_auto_auto] md:items-end">
+            <div>
+              <label
+                htmlFor="questionLanguage"
+                className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+              >
+                言語
+              </label>
+              <select
+                id="questionLanguage"
+                name="questionLanguage"
+                defaultValue={questionLanguage}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-900"
+              >
+                {QUESTION_LANGUAGE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="sort"
+                className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+              >
+                並び順
+              </label>
+              <select
+                id="sort"
+                name="sort"
+                defaultValue={sort}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-900"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+            >
+              絞り込む
+            </button>
+
+            {hasFilter ? (
+              <Link
+                href={ROUTES.publicDecks}
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                リセット
+              </Link>
+            ) : null}
+          </form>
+        </section>
+
         {publicDecks.length === 0 ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
-            <p className="text-base font-medium text-gray-900">公開中の単語帳はまだありません</p>
+            <p className="text-base font-medium text-gray-900">条件に一致する公開単語帳はありません</p>
             <p className="mt-2 text-sm text-gray-500">
-              あなたの単語帳を公開して、他のユーザーにも共有してみましょう。
+              絞り込み条件を変更するか、しばらくしてから再度確認してください。
             </p>
           </div>
         ) : (
@@ -71,7 +211,7 @@ export default async function PublicDecksPage() {
                         投稿者: {deck.user.name || deck.user.email}
                       </p>
                       <p className="text-sm text-gray-500">
-                        作成日: {new Date(deck.createdAt).toLocaleDateString("ja-JP")}
+                        学習言語: {getLanguageLabel(deck.questionLanguage)}
                       </p>
                     </div>
 
