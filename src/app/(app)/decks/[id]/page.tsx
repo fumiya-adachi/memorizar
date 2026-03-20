@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import FlashCardForm from "./FlashCardForm"
 import FlashCardItem from "./FlashCardItem"
@@ -8,6 +8,7 @@ import { ROUTES } from "@/constants/routes"
 import DeleteDeckButton from "./DeleteDeckButton"
 import { deleteDeck } from "./actions"
 import EditDeckNameForm from "./EditDeckNameForm"
+import EditDeckVisibilityForm from "./EditDeckVisibilityForm"
 import { requireCurrentUser } from "@/lib/currentUser"
 
 export const dynamic = "force-dynamic"
@@ -47,23 +48,90 @@ export default async function DeckDetailPage({
     notFound()
   }
 
+  const deckWithSource = deck as typeof deck & { sourceDeckId: number | null }
+
+  const isImportedDeck = deckWithSource.sourceDeckId !== null
+  let flashcards: Array<{
+    id: number
+    deckId: number
+    question: string
+    answer: string
+    description: string | null
+    createdAt: Date
+    sourceCardId: number | null
+  }> = []
+
+  if (isImportedDeck) {
+    const localCards = await prisma.flashCard.findMany({
+      where: {
+        deckId: deck.id,
+        userId: user.id,
+      },
+      select: {
+        id: true,
+        deckId: true,
+        question: true,
+        answer: true,
+        description: true,
+        createdAt: true,
+        sourceCardId: true,
+      },
+    })
+
+    const overriddenSourceCardIds = localCards
+      .map((card) => card.sourceCardId)
+      .filter((sourceCardId): sourceCardId is number => sourceCardId !== null)
+
+    const sourceCards = await prisma.flashCard.findMany({
+      where: {
+        deckId: deckWithSource.sourceDeckId!,
+        ...(overriddenSourceCardIds.length > 0
+          ? {
+              id: {
+                notIn: overriddenSourceCardIds,
+              },
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        deckId: true,
+        question: true,
+        answer: true,
+        description: true,
+        createdAt: true,
+        sourceCardId: true,
+      },
+    })
+
+    flashcards = [...localCards, ...sourceCards].sort(
+      (left, right) => right.createdAt.getTime() - left.createdAt.getTime()
+    )
+  } else {
+    flashcards = await prisma.flashCard.findMany({
+      where: { deckId: deck.id },
+      select: {
+        id: true,
+        deckId: true,
+        question: true,
+        answer: true,
+        description: true,
+        createdAt: true,
+        sourceCardId: true,
+      },
+      orderBy: { createdAt: "desc" },
+    })
+  }
+
   const PAGE_SIZE = 10
   const requestedPage = Number(pageQuery ?? "1")
   const currentPage = Number.isNaN(requestedPage) || requestedPage < 1 ? 1 : requestedPage
 
-  const totalFlashCards = await prisma.flashCard.count({
-    where: { deckId },
-  })
+  const totalFlashCards = flashcards.length
 
   const totalPages = Math.max(1, Math.ceil(totalFlashCards / PAGE_SIZE))
   const page = Math.min(currentPage, totalPages)
-
-  const flashcards = await prisma.flashCard.findMany({
-    where: { deckId },
-    orderBy: { createdAt: "desc" },
-    skip: (page - 1) * PAGE_SIZE,
-    take: PAGE_SIZE,
-  })
+  const paginatedFlashcards = flashcards.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
@@ -79,6 +147,9 @@ export default async function DeckDetailPage({
           <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0 md:flex-1 md:pr-6">
               <EditDeckNameForm deckId={deck.id} deckName={deck.name} />
+              {!isImportedDeck ? (
+                <EditDeckVisibilityForm deckId={deck.id} isPublic={deck.isPublic} />
+              ) : null}
             </div>
 
             <div className="flex items-center gap-3">
@@ -97,17 +168,35 @@ export default async function DeckDetailPage({
         <div className="mt-8 grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
           <div className="flex flex-col gap-4">
             <section className="rounded-3xl bg-white p-6 shadow-sm h-[640px] overflow-y-auto">
-              <h2 className="text-xl font-semibold text-gray-900">
-                カードを追加
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">
-                この単語帳に新しいフラッシュカードを追加します。
-                単語・意味・用語などを登録して、あとで復習できるようにしましょう。
-              </p>
+              {isImportedDeck ? (
+                <>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    カードを追加
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-gray-500">
+                    取り込み元のカードは参照のまま使い、ここで追加したカードだけこの単語帳に保存されます。
+                    元の単語帳には影響せず、正答率などの学習データはあなた専用で記録されます。
+                  </p>
 
-              <div className="mt-6">
-                <FlashCardForm deckId={deck.id} />
-              </div>
+                  <div className="mt-6">
+                    <FlashCardForm deckId={deck.id} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    カードを追加
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-gray-500">
+                    この単語帳に新しいフラッシュカードを追加します。
+                    単語・意味・用語などを登録して、あとで復習できるようにしましょう。
+                  </p>
+
+                  <div className="mt-6">
+                    <FlashCardForm deckId={deck.id} />
+                  </div>
+                </>
+              )}
             </section>
 
             <DeleteDeckButton deckId={deck.id} onDelete={deleteDeck} />
@@ -147,10 +236,17 @@ export default async function DeckDetailPage({
                 </div>
 
                 <div className="divide-y divide-gray-200">
-                  {flashcards.map((card) => (
+                  {paginatedFlashcards.map((card) => (
                     <FlashCardItem
                       key={card.id}
                       deckId={deck.id}
+                      canEdit={!isImportedDeck || card.deckId === deck.id || card.sourceCardId === null}
+                      canDelete={card.deckId === deck.id}
+                      helperText={
+                        isImportedDeck && card.deckId !== deck.id
+                          ? "保存すると、この単語帳専用の編集版として上書きされます。元の単語帳は変更されません。"
+                          : undefined
+                      }
                       card={{
                         id: card.id,
                         question: card.question,

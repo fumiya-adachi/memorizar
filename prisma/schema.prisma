@@ -44,15 +44,20 @@ model FlashCard {
   id          Int      @id @default(autoincrement())
   userId      Int
   deckId      Int
+  sourceCardId Int?
   question    String
   answer      String
   description String?
   createdAt   DateTime @default(now())
 
-  user     User                @relation(fields: [userId], references: [id])
-  deck     Deck                @relation(fields: [deckId], references: [id])
-  progress FlashCardProgress[]
-  history  ReviewHistory[]
+  user         User                @relation(fields: [userId], references: [id])
+  deck         Deck                @relation(fields: [deckId], references: [id])
+  sourceCard   FlashCard?          @relation("FlashCardOverride", fields: [sourceCardId], references: [id], onDelete: SetNull)
+  overriddenBy FlashCard[]         @relation("FlashCardOverride")
+  progress     FlashCardProgress[]
+  history      ReviewHistory[]
+
+  @@unique([deckId, sourceCardId])
 }
 
 model FlashCardProgress {

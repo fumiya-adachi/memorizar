@@ -14,6 +14,10 @@ export type DeckNameState = {
   error?: string
 }
 
+export type DeckVisibilityState = {
+  error?: string
+}
+
 export async function createFlashCard(
   deckId: number,
   _prevState: FlashCardState,
@@ -37,6 +41,10 @@ export async function createFlashCard(
     where: {
       id: deckId,
       userId: user.id,
+    },
+    select: {
+      id: true,
+      sourceDeckId: true,
     },
   })
 
@@ -79,28 +87,151 @@ export async function updateFlashCard(
     return { error: "問題と答えを入力してください。" }
   }
 
-  const card = await prisma.flashCard.findFirst({
+  const deck = await prisma.deck.findFirst({
+    where: {
+      id: deckId,
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      sourceDeckId: true,
+    },
+  })
+
+  if (!deck) {
+    return { error: "Deckが見つかりません。" }
+  }
+
+  const localCard = await prisma.flashCard.findFirst({
     where: {
       id: cardId,
       deckId,
       userId: user.id,
     },
-  })
-
-  if (!card) {
-    return { error: "カードが見つかりません。" }
-  }
-
-  await prisma.flashCard.update({
-    where: { id: card.id },
-    data: {
-      question,
-      answer,
-      description: description || null,
+    select: {
+      id: true,
     },
   })
 
+  if (localCard) {
+    await prisma.flashCard.update({
+      where: { id: localCard.id },
+      data: {
+        question,
+        answer,
+        description: description || null,
+      },
+    })
+
+    revalidatePath(ROUTES.deckDetail(deckId))
+    revalidatePath(ROUTES.deckReview(deckId))
+
+    return {}
+  }
+
+  if (!deck.sourceDeckId) {
+    return { error: "カードが見つかりません。" }
+  }
+
+  const sourceCard = await prisma.flashCard.findFirst({
+    where: {
+      id: cardId,
+      deckId: deck.sourceDeckId,
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  if (!sourceCard) {
+    return { error: "カードが見つかりません。" }
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const existingOverride = await tx.flashCard.findFirst({
+      where: {
+        deckId: deck.id,
+        userId: user.id,
+        sourceCardId: sourceCard.id,
+      },
+      select: {
+        id: true,
+      },
+    })
+
+    const overrideCard = existingOverride
+      ? await tx.flashCard.update({
+          where: {
+            id: existingOverride.id,
+          },
+          data: {
+            question,
+            answer,
+            description: description || null,
+          },
+          select: {
+            id: true,
+          },
+        })
+      : await tx.flashCard.create({
+          data: {
+            userId: user.id,
+            deckId: deck.id,
+            sourceCardId: sourceCard.id,
+            question,
+            answer,
+            description: description || null,
+          },
+          select: {
+            id: true,
+          },
+        })
+
+    const progress = await tx.flashCardProgress.findUnique({
+      where: {
+        userId_cardId: {
+          userId: user.id,
+          cardId: sourceCard.id,
+        },
+      },
+    })
+
+    if (progress) {
+      await tx.flashCardProgress.delete({
+        where: {
+          userId_cardId: {
+            userId: user.id,
+            cardId: sourceCard.id,
+          },
+        },
+      })
+
+      await tx.flashCardProgress.create({
+        data: {
+          userId: progress.userId,
+          cardId: overrideCard.id,
+          correctCount: progress.correctCount,
+          wrongCount: progress.wrongCount,
+          reviewCount: progress.reviewCount,
+          nextReview: progress.nextReview,
+          lastReviewed: progress.lastReviewed,
+        },
+      })
+    }
+
+    await tx.reviewHistory.updateMany({
+      where: {
+        userId: user.id,
+        cardId: sourceCard.id,
+      },
+      data: {
+        cardId: overrideCard.id,
+      },
+    })
+  })
+
   revalidatePath(ROUTES.deckDetail(deckId))
+  revalidatePath(ROUTES.deckReview(deckId))
 
   return {}
 }
@@ -112,6 +243,21 @@ export async function deleteFlashCard(deckId: number, cardId: number) {
     return
   }
 
+  const deck = await prisma.deck.findFirst({
+    where: {
+      id: deckId,
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      sourceDeckId: true,
+    },
+  })
+
+  if (!deck) {
+    return
+  }
+
   const card = await prisma.flashCard.findFirst({
     where: {
       id: cardId,
@@ -124,8 +270,11 @@ export async function deleteFlashCard(deckId: number, cardId: number) {
     return
   }
 
-  await prisma.flashCard.delete({
-    where: { id: card.id },
+  // 他ユーザーの学習記録も含めて削除（FK制約違反を防ぐ）
+  await prisma.$transaction(async (tx) => {
+    await tx.reviewHistory.deleteMany({ where: { cardId: card.id } })
+    await tx.flashCardProgress.deleteMany({ where: { cardId: card.id } })
+    await tx.flashCard.delete({ where: { id: card.id } })
   })
 
   revalidatePath(ROUTES.deckDetail(deckId))
@@ -161,29 +310,18 @@ export async function deleteDeck(deckId: number) {
 
   await prisma.$transaction(async (tx) => {
     if (cardIds.length > 0) {
+      // 他ユーザーの学習記録も含めて削除（FK制約違反を防ぐ）
       await tx.reviewHistory.deleteMany({
-        where: {
-          userId: user.id,
-          cardId: {
-            in: cardIds,
-          },
-        },
+        where: { cardId: { in: cardIds } },
       })
 
       await tx.flashCardProgress.deleteMany({
-        where: {
-          userId: user.id,
-          cardId: {
-            in: cardIds,
-          },
-        },
+        where: { cardId: { in: cardIds } },
       })
 
       await tx.flashCard.deleteMany({
         where: {
-          id: {
-            in: cardIds,
-          },
+          id: { in: cardIds },
           userId: user.id,
         },
       })
@@ -249,6 +387,52 @@ export async function updateDeckName(
 
   revalidatePath(ROUTES.deckDetail(deckId))
   revalidatePath(ROUTES.decks)
+
+  return {}
+}
+
+export async function updateDeckVisibility(
+  deckId: number,
+  _prevState: DeckVisibilityState,
+  formData: FormData
+): Promise<DeckVisibilityState> {
+  const user = await getCurrentUser()
+
+  if (!user) {
+    return { error: "ログインが必要です。" }
+  }
+
+  const isPublic = formData.get("isPublic") === "on"
+
+  const deck = await prisma.deck.findFirst({
+    where: {
+      id: deckId,
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      sourceDeckId: true,
+    },
+  })
+
+  if (!deck) {
+    return { error: "Deckが見つかりません。" }
+  }
+
+  if (deck.sourceDeckId) {
+    return { error: "取り込み単語帳は公開設定を変更できません。" }
+  }
+
+  await prisma.deck.update({
+    where: { id: deckId },
+    data: {
+      isPublic,
+    },
+  })
+
+  revalidatePath(ROUTES.deckDetail(deckId))
+  revalidatePath(ROUTES.decks)
+  revalidatePath(ROUTES.publicDecks)
 
   return {}
 }

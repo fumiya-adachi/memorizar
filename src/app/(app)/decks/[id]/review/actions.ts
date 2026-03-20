@@ -24,10 +24,13 @@ export async function markFlashCardResult(cardId: number, isCorrect: boolean) {
     throw new Error("Unauthorized")
   }
 
-  const card = await prisma.flashCard.findFirst({
+  const card = await prisma.flashCard.findUnique({
     where: {
       id: cardId,
-      userId: user.id,
+    },
+    select: {
+      id: true,
+      deckId: true,
     },
   })
 
@@ -35,7 +38,23 @@ export async function markFlashCardResult(cardId: number, isCorrect: boolean) {
     throw new Error("Card not found")
   }
 
-  const deckId = card.deckId
+  // ユーザーが所有するデッキ、または取り込み元デッキとして参照しているデッキを探す
+  const userDeck = await prisma.deck.findFirst({
+    where: {
+      userId: user.id,
+      OR: [
+        { id: card.deckId },           // 自分のデッキ
+        { sourceDeckId: card.deckId }, // 取り込み先デッキ
+      ],
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  if (!userDeck) {
+    throw new Error("Unauthorized card access")
+  }
 
   const existingProgress = await prisma.flashCardProgress.findUnique({
     where: {
@@ -82,5 +101,5 @@ export async function markFlashCardResult(cardId: number, isCorrect: boolean) {
     })
   }
 
-  revalidatePath(ROUTES.deckReview(deckId))
+  revalidatePath(ROUTES.deckReview(userDeck.id))
 }

@@ -5,6 +5,9 @@ import EditFlashCardModal from "./EditFlashCardModal"
 
 type FlashCardItemProps = {
   deckId: number
+  canEdit?: boolean
+  canDelete?: boolean
+  helperText?: string
   card: {
     id: number
     question: string
@@ -15,9 +18,45 @@ type FlashCardItemProps = {
 
 export default function FlashCardItem({
   deckId,
+  canEdit = true,
+  canDelete = true,
+  helperText,
   card,
 }: FlashCardItemProps) {
   const [isEditing, setIsEditing] = useState(false)
+
+  if (!canEdit) {
+    return (
+      <div className="grid w-full gap-4 px-5 py-4 text-left md:grid-cols-[1.1fr_1.1fr_1.2fr] md:items-start">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 md:hidden">
+            Question
+          </p>
+          <p className="mt-1 text-sm font-medium text-gray-900 md:mt-0">
+            {card.question}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 md:hidden">
+            Answer
+          </p>
+          <p className="mt-1 text-sm text-gray-700 md:mt-0">
+            {card.answer}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 md:hidden">
+            Description
+          </p>
+          <p className="mt-1 text-sm text-gray-600 md:mt-0">
+            {card.description || "—"}
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -57,6 +96,8 @@ export default function FlashCardItem({
       <EditFlashCardModal
         deckId={deckId}
         card={card}
+        canDelete={canDelete}
+        helperText={helperText}
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
       />

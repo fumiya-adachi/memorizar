@@ -9,6 +9,8 @@ import {
 
 type EditFlashCardModalProps = {
   deckId: number
+  canDelete?: boolean
+  helperText?: string
   card: {
     id: number
     question: string
@@ -23,6 +25,8 @@ const initialState: FlashCardState = {}
 
 export default function EditFlashCardModal({
   deckId,
+  canDelete = true,
+  helperText,
   card,
   isOpen,
   onClose,
@@ -105,17 +109,25 @@ export default function EditFlashCardModal({
             <p className="text-sm text-red-600">{state.error}</p>
           ) : null}
 
+          {helperText ? (
+            <p className="text-sm text-gray-500">{helperText}</p>
+          ) : null}
+
           <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <button
-              type="button"
-              onClick={async () => {
-                await deleteFlashCardWithIds()
-                onClose()
-              }}
-              className="rounded-xl border border-red-200 px-4 py-2 font-medium text-red-600 transition hover:bg-red-50"
-            >
-              削除する
-            </button>
+            {canDelete ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  await deleteFlashCardWithIds()
+                  onClose()
+                }}
+                className="rounded-xl border border-red-200 px-4 py-2 font-medium text-red-600 transition hover:bg-red-50"
+              >
+                削除する
+              </button>
+            ) : (
+              <div />
+            )}
 
             <div className="flex gap-3">
               <button
