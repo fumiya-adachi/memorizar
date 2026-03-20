@@ -139,7 +139,6 @@ export default async function DecksPage({ searchParams }: DecksPageProps) {
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">あなたの単語帳</h1>
-          <p className="mt-2 text-sm text-gray-500">{deckSummaries.length}件</p>
         </div>
 
         <details open className="group mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
