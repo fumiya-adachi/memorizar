@@ -164,8 +164,10 @@ export default async function ReviewPage({
   const progress = card.progress[0] ?? null
   const prevIndex = Math.max(currentIndex - 1, 0)
   const nextIndex = Math.min(currentIndex + 1, sortedCards.length - 1)
+  const firstIndex = 0
   const prevHref = `${ROUTES.deckReview(deck.id)}?mode=${reviewMode}&index=${prevIndex}`
   const nextHref = `${ROUTES.deckReview(deck.id)}?mode=${reviewMode}&index=${nextIndex}`
+  const firstHref = `${ROUTES.deckReview(deck.id)}?mode=${reviewMode}&index=${firstIndex}`
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
@@ -193,6 +195,7 @@ export default async function ReviewPage({
           totalCount={sortedCards.length}
           prevHref={prevHref}
           nextHref={nextHref}
+          firstHref={firstHref}
         />
 
         <ReviewCard

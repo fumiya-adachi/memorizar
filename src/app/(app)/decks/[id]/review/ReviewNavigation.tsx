@@ -5,6 +5,7 @@ type ReviewNavigationProps = {
   totalCount: number
   prevHref: string
   nextHref: string
+  firstHref: string
 }
 
 export default function ReviewNavigation({
@@ -12,6 +13,7 @@ export default function ReviewNavigation({
   totalCount,
   prevHref,
   nextHref,
+  firstHref,
 }: ReviewNavigationProps) {
   const hasPrev = currentIndex > 0
   const hasNext = currentIndex < totalCount - 1
@@ -47,13 +49,12 @@ export default function ReviewNavigation({
           次の問題 →
         </Link>
       ) : (
-        <button
-          type="button"
-          disabled
-          className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 font-medium text-gray-400"
+        <Link
+          href={firstHref}
+          className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 transition hover:bg-gray-50"
         >
-          次の問題 →
-        </button>
+          1問目に戻る
+        </Link>
       )}
     </div>
   )
