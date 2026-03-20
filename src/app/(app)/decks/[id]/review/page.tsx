@@ -84,6 +84,14 @@ function sortByWeakness<
   })
 }
 
+function sortByCreatedAt<
+  T extends {
+    createdAt: Date
+  }
+>(cards: T[]) {
+  return [...cards].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+}
+
 function matchesAccuracyFilter(
   progress: {
     correctCount: number
@@ -199,8 +207,8 @@ export default async function ReviewPage({
     sortedCards = sortByWeakness(cards)
   } else {
     // 通常モード
-    // nextReviewでは絞らず、全カードを正答率が低い順に出す
-    sortedCards = sortByWeakness(cards)
+    // 登録順（古いカードから）
+    sortedCards = sortByCreatedAt(cards)
   }
 
   const filteredCards = sortedCards.filter((candidate) =>
