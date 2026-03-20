@@ -61,7 +61,12 @@ export default async function PublicDecksPage() {
                 <article key={deck.id} className="rounded-2xl bg-white p-6 shadow-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-900">{deck.name}</h2>
+                      <Link
+                        href={ROUTES.publicDeckDetail(deck.id)}
+                        className="text-lg font-semibold text-gray-900 hover:underline underline-offset-4"
+                      >
+                        {deck.name}
+                      </Link>
                       <p className="mt-2 text-sm text-gray-500">
                         投稿者: {deck.user.name || deck.user.email}
                       </p>
@@ -75,20 +80,29 @@ export default async function PublicDecksPage() {
                     </div>
                   </div>
 
-                  {isOwnDeck ? (
-                    <p className="mt-5 text-sm font-medium text-gray-500">
-                      あなたが公開中の単語帳です
-                    </p>
-                  ) : (
-                    <form action={importPublicDeck.bind(null, deck.id)} className="mt-5">
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-                      >
-                        この単語帳を取り込む
-                      </button>
-                    </form>
-                  )}
+                  <div className="mt-5 flex flex-wrap items-center gap-3">
+                    <Link
+                      href={ROUTES.publicDeckDetail(deck.id)}
+                      className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                    >
+                      中身を見る
+                    </Link>
+
+                    {isOwnDeck ? (
+                      <p className="text-sm font-medium text-gray-500">
+                        あなたが公開中の単語帳です
+                      </p>
+                    ) : (
+                      <form action={importPublicDeck.bind(null, deck.id)}>
+                        <button
+                          type="submit"
+                          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+                        >
+                          この単語帳を取り込む
+                        </button>
+                      </form>
+                    )}
+                  </div>
                 </article>
               )
             })}
