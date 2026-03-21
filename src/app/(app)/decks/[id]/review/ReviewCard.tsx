@@ -14,9 +14,10 @@ type ReviewCardProps = {
     questionLanguage: string | null
     answerLanguage: string | null
   }
+  afterSubmitHref: string
 }
 
-export default function ReviewCard({ card }: ReviewCardProps) {
+export default function ReviewCard({ card, afterSubmitHref }: ReviewCardProps) {
   const [showAnswer, setShowAnswer] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -43,7 +44,7 @@ export default function ReviewCard({ card }: ReviewCardProps) {
   const submitResult = (isCorrect: boolean) => {
     startTransition(async () => {
       await markFlashCardResult(card.id, isCorrect)
-      router.refresh()
+      router.push(afterSubmitHref)
     })
   }
 

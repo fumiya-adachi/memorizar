@@ -41,9 +41,17 @@ function getAccuracy(progress?: {
 function sortByCreatedAt<
   T extends {
     createdAt: Date
+    sourceCard?: {
+      createdAt: Date
+    } | null
   }
 >(cards: T[]) {
-  return [...cards].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+  return [...cards].sort((a, b) => {
+    const leftCreatedAt = a.sourceCard?.createdAt ?? a.createdAt
+    const rightCreatedAt = b.sourceCard?.createdAt ?? b.createdAt
+
+    return leftCreatedAt.getTime() - rightCreatedAt.getTime()
+  })
 }
 
 function matchesAccuracyFilter(
@@ -104,28 +112,83 @@ export default async function ReviewPage({
     notFound()
   }
 
-  const cards = await prisma.flashCard.findMany({
+  const currentDeck = deck
+
+  const progressInclude = {
     where: {
-      deckId: deck.id,
       userId: user.id,
     },
-    include: {
-      deck: true,
-      progress: {
+    take: 1,
+  } as const
+
+  const sourceCardInclude = {
+    select: {
+      createdAt: true,
+    },
+  } as const
+
+  async function loadReviewCards() {
+    if (isImportedDeck) {
+      const localCards = await prisma.flashCard.findMany({
         where: {
+          deckId: currentDeck.id,
           userId: user.id,
         },
-        take: 1,
+        include: {
+          deck: true,
+          sourceCard: sourceCardInclude,
+          progress: progressInclude,
+        },
+      })
+
+      const overriddenSourceCardIds = localCards
+        .map((card) => card.sourceCardId)
+        .filter((sourceCardId): sourceCardId is number => sourceCardId !== null)
+
+      const sourceCards = await prisma.flashCard.findMany({
+        where: {
+          deckId: deckWithSource.sourceDeckId!,
+          ...(overriddenSourceCardIds.length > 0
+            ? {
+                id: {
+                  notIn: overriddenSourceCardIds,
+                },
+              }
+            : {}),
+        },
+        include: {
+          deck: true,
+          sourceCard: sourceCardInclude,
+          progress: progressInclude,
+        },
+      })
+
+      return [...localCards, ...sourceCards]
+    }
+
+    return prisma.flashCard.findMany({
+      where: {
+        deckId: currentDeck.id,
       },
-    },
-  })
+      include: {
+        deck: true,
+        sourceCard: sourceCardInclude,
+        progress: progressInclude,
+      },
+    })
+  }
+
+  const deckWithSource = currentDeck as typeof currentDeck & { sourceDeckId: number | null }
+
+  const isImportedDeck = deckWithSource.sourceDeckId !== null
+  const cards = await loadReviewCards()
 
   if (cards.length === 0) {
     return (
       <main className="min-h-screen bg-gray-50 px-4 py-10">
         <div className="mx-auto max-w-2xl rounded-3xl bg-white p-8 shadow-sm">
           <Link
-            href={ROUTES.deckDetail(deck.id)}
+            href={ROUTES.deckDetail(currentDeck.id)}
             className="inline-flex items-center text-sm font-medium text-gray-500 transition hover:text-gray-900 hover:underline underline-offset-4"
           >
             ← 単語帳へ戻る
@@ -148,7 +211,7 @@ export default async function ReviewPage({
   )
 
   const getReviewHref = (nextIndex: number, nextFilter: AccuracyFilter = accuracyFilter) => {
-    return `${ROUTES.deckReview(deck.id)}?accuracy=${nextFilter}&index=${nextIndex}`
+    return `${ROUTES.deckReview(currentDeck.id)}?accuracy=${nextFilter}&index=${nextIndex}`
   }
 
   if (filteredCards.length === 0) {
@@ -157,7 +220,7 @@ export default async function ReviewPage({
         <div className="mx-auto max-w-2xl">
           <div className="mb-6">
             <Link
-              href={ROUTES.deckDetail(deck.id)}
+              href={ROUTES.deckDetail(currentDeck.id)}
               className="inline-flex items-center text-sm font-medium text-gray-500 transition hover:text-gray-900 hover:underline underline-offset-4"
             >
               ← 単語帳へ戻る
@@ -208,13 +271,14 @@ export default async function ReviewPage({
   const prevHref = getReviewHref(prevIndex)
   const nextHref = getReviewHref(nextIndex)
   const firstHref = getReviewHref(firstIndex)
+  const afterSubmitHref = currentIndex < filteredCards.length - 1 ? nextHref : firstHref
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
           <Link
-            href={ROUTES.deckDetail(deck.id)}
+            href={ROUTES.deckDetail(currentDeck.id)}
             className="inline-flex items-center text-sm font-medium text-gray-500 transition hover:text-gray-900 hover:underline underline-offset-4"
           >
             ← 単語帳へ戻る
@@ -252,10 +316,11 @@ export default async function ReviewPage({
           key={card.id}
           card={{
             ...card,
-            deckName: card.deck.name,
-            questionLanguage: card.deck.questionLanguage,
-            answerLanguage: card.deck.answerLanguage,
+            deckName: currentDeck.name,
+            questionLanguage: currentDeck.questionLanguage || card.deck.questionLanguage,
+            answerLanguage: currentDeck.answerLanguage || card.deck.answerLanguage,
           }}
+          afterSubmitHref={afterSubmitHref}
         />
 
         <div className="mt-4 rounded-2xl bg-white p-4 text-sm text-gray-600 shadow-sm">

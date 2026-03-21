@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useEffect, useRef } from "react"
 import {
   deleteFlashCard,
   updateFlashCard,
@@ -9,6 +9,9 @@ import {
 
 type EditFlashCardModalProps = {
   deckId: number
+  canDelete?: boolean
+  helperText?: string
+  onSaved?: () => void
   card: {
     id: number
     question: string
@@ -23,6 +26,9 @@ const initialState: FlashCardState = {}
 
 export default function EditFlashCardModal({
   deckId,
+  canDelete = true,
+  helperText,
+  onSaved,
   card,
   isOpen,
   onClose,
@@ -34,11 +40,28 @@ export default function EditFlashCardModal({
     updateFlashCardWithIds,
     initialState
   )
+  const prevPendingRef = useRef(false)
+
+  useEffect(() => {
+    if (prevPendingRef.current && !isPending && !state.error) {
+      onClose()
+      onSaved?.()
+    }
+
+    prevPendingRef.current = isPending
+  }, [isPending, state.error, onClose, onSaved])
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose()
+        }
+      }}
+    >
       <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-xl">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900">
@@ -105,17 +128,25 @@ export default function EditFlashCardModal({
             <p className="text-sm text-red-600">{state.error}</p>
           ) : null}
 
+          {helperText ? (
+            <p className="text-sm text-gray-500">{helperText}</p>
+          ) : null}
+
           <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <button
-              type="button"
-              onClick={async () => {
-                await deleteFlashCardWithIds()
-                onClose()
-              }}
-              className="rounded-xl border border-red-200 px-4 py-2 font-medium text-red-600 transition hover:bg-red-50"
-            >
-              削除する
-            </button>
+            {canDelete ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  await deleteFlashCardWithIds()
+                  onClose()
+                }}
+                className="rounded-xl border border-red-200 px-4 py-2 font-medium text-red-600 transition hover:bg-red-50"
+              >
+                削除する
+              </button>
+            ) : (
+              <div />
+            )}
 
             <div className="flex gap-3">
               <button

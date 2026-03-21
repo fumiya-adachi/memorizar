@@ -28,7 +28,7 @@ export default function AIDeckForm() {
         body: JSON.stringify({
           topic,
           count,
-          questionLanguage
+          questionLanguage,
         }),
       })
 
@@ -89,7 +89,7 @@ export default function AIDeckForm() {
           htmlFor="count"
           className="mb-1 block text-sm font-medium text-gray-700"
         >
-          単語数 <span className="text-xs text-gray-500">（*現在ベータ版のため上限は50です）</span>
+          単語数
         </label>
         <input
           id="count"

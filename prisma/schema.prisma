@@ -24,30 +24,40 @@ model Deck {
   id        Int      @id @default(autoincrement())
   userId    Int
   name      String
+  isPublic  Boolean  @default(false)
+  sourceDeckId Int?
   questionLanguage String?
   answerLanguage   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user       User        @relation(fields: [userId], references: [id])
-  flashcards FlashCard[]
+  user          User        @relation(fields: [userId], references: [id])
+  sourceDeck    Deck?       @relation("DeckSource", fields: [sourceDeckId], references: [id], onDelete: SetNull)
+  importedDecks Deck[]      @relation("DeckSource")
+  flashcards    FlashCard[]
 
   @@unique([userId, name])
+  @@unique([userId, sourceDeckId])
 }
 
 model FlashCard {
   id          Int      @id @default(autoincrement())
   userId      Int
   deckId      Int
+  sourceCardId Int?
   question    String
   answer      String
   description String?
   createdAt   DateTime @default(now())
 
-  user     User                @relation(fields: [userId], references: [id])
-  deck     Deck                @relation(fields: [deckId], references: [id])
-  progress FlashCardProgress[]
-  history  ReviewHistory[]
+  user         User                @relation(fields: [userId], references: [id])
+  deck         Deck                @relation(fields: [deckId], references: [id])
+  sourceCard   FlashCard?          @relation("FlashCardOverride", fields: [sourceCardId], references: [id], onDelete: SetNull)
+  overriddenBy FlashCard[]         @relation("FlashCardOverride")
+  progress     FlashCardProgress[]
+  history      ReviewHistory[]
+
+  @@unique([deckId, sourceCardId])
 }
 
 model FlashCardProgress {
