@@ -11,6 +11,7 @@ import {
   isQuestionLanguageFilter,
   isSortFilter,
 } from "@/features/decks/filters"
+import { calcImportedDeckCardCount } from "@memorizar/shared/features/decks/cardCount"
 
 type DecksPageProps = {
   searchParams: Promise<{
@@ -127,7 +128,7 @@ export default async function DecksPage({ searchParams }: DecksPageProps) {
 
     return {
       ...deck,
-      cardCount: Math.max(0, sourceCardCount + localCardCount - overrideCount),
+      cardCount: calcImportedDeckCardCount(sourceCardCount, localCardCount, overrideCount),
     }
   })
 

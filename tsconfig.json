@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@memorizar/shared": ["./packages/shared/src/index.ts"],
+      "@memorizar/shared/*": ["./packages/shared/src/*"]
     }
   },
   "include": [

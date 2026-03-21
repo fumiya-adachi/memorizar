@@ -4,18 +4,7 @@ import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { ROUTES } from "@/constants/routes"
 import { getCurrentUser } from "@/lib/currentUser"
-
-function calculateNextReviewDate(isCorrect: boolean) {
-  const now = new Date()
-
-  if (!isCorrect) {
-    now.setDate(now.getDate() + 1)
-    return now
-  }
-
-  now.setDate(now.getDate() + 3)
-  return now
-}
+import { calculateNextReviewDate } from "@memorizar/shared/features/review/srs"
 
 export async function markFlashCardResult(cardId: number, isCorrect: boolean) {
   const user = await getCurrentUser()
