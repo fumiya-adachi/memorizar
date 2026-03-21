@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "memorizar",
+    "slug": "memorizar",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "memorizar",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dev.fumiya.memorizar"
+    },
+    "android": {
+      "package": "dev.fumiya.memorizar"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
