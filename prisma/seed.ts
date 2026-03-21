@@ -4,6 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "../src/generated/prisma/client"
 import { spanishBasicCards } from "./seeds/spanishBasic"
 import { engineeringEnglishCards } from "./seeds/englishEngineer"
+import { toiecEnglishEnglishCards } from "./seeds/toiecEnglish"
 
 const connectionString = process.env.DATABASE_URL
 
@@ -75,6 +76,25 @@ async function main() {
     where: { userId: user.id, deckId: engineeringDeck.id },
   })
 
+  const toiecDeckName = "TOEIC よく出る英単語"
+
+  const toiecDeck =
+    (await prisma.deck.findFirst({
+      where: { userId: user.id, name: toiecDeckName },
+    })) ??
+    (await prisma.deck.create({
+      data: {
+        name: toiecDeckName,
+        questionLanguage: "en-US",
+        answerLanguage: "ja-JP",
+        userId: user.id,
+      },
+    }))
+
+  const toiecCardCount = await prisma.flashCard.count({
+    where: { userId: user.id, deckId: toiecDeck.id },
+  })
+
   if (engineeringCardCount === 0) {
     await prisma.flashCard.createMany({
       data: engineeringEnglishCards.map((card) => ({
@@ -94,6 +114,17 @@ async function main() {
         question: card.question,
         answer: card.answer,
         description: card.description,
+      })),
+    })
+  }
+
+  if (toiecCardCount === 0) {
+    await prisma.flashCard.createMany({
+      data: toiecEnglishEnglishCards.map((card) => ({
+        userId: user.id,
+        deckId: toiecDeck.id,
+        question: card.question,
+        answer: card.answer,
       })),
     })
   }
