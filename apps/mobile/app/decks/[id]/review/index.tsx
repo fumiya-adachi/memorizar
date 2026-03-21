@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import {
   ActivityIndicator,
   Pressable,
@@ -10,8 +10,8 @@ import {
 } from "react-native"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import * as Speech from "expo-speech"
-import { fetchReviewCards, postCardResult, type ReviewCard } from "../../../lib/deckApi"
-import { calculateNextReviewDate } from "@memorizar/shared/features/review/srs"
+import { clearSessionToken, isUnauthorizedError } from "@/lib/api"
+import { fetchReviewCards, postCardResult, type ReviewCard } from "@/lib/deckApi"
 
 export default function ReviewScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -26,22 +26,29 @@ export default function ReviewScreen() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  // 最新の index を非同期コールバックで参照するための ref
-  const indexRef = useRef(index)
   useEffect(() => {
-    indexRef.current = index
-  }, [index])
+    if (Number.isNaN(deckId)) {
+      setError("不正なデッキIDです")
+      setLoading(false)
+      return
+    }
 
-  useEffect(() => {
-    if (Number.isNaN(deckId)) return
     fetchReviewCards(deckId)
       .then((data) => {
         setCards(data.cards)
         setDeckName(data.deckName)
       })
-      .catch((e: Error) => setError(e.message))
+      .catch(async (error: unknown) => {
+        if (isUnauthorizedError(error)) {
+          await clearSessionToken()
+          router.replace("/login")
+          return
+        }
+
+        setError(error instanceof Error ? error.message : "読み込みに失敗しました")
+      })
       .finally(() => setLoading(false))
-  }, [deckId])
+  }, [deckId, router])
 
   // カードが変わったら回答を隠す
   useEffect(() => {
@@ -62,7 +69,13 @@ export default function ReviewScreen() {
     setSubmitting(true)
     try {
       await postCardResult(deckId, card.id, isCorrect)
-    } catch {
+    } catch (error) {
+      if (isUnauthorizedError(error)) {
+        await clearSessionToken()
+        router.replace("/login")
+        return
+      }
+
       // 通信エラーでも次のカードに進む（オフライン対応は今後）
     } finally {
       setSubmitting(false)

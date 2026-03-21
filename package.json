@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "dev:mobile": "npm run start --workspace=@memorizar/mobile",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate"
