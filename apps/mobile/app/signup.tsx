@@ -9,20 +9,16 @@ import {
   TextInput,
   View,
 } from "react-native"
-import { useLocalSearchParams, useRouter } from "expo-router"
-import { loginWithPassword } from "@/lib/authApi"
+import { useRouter } from "expo-router"
+import { signupWithPassword } from "@/lib/authApi"
 
-export default function LoginScreen() {
-  const { reason } = useLocalSearchParams<{ reason?: string }>()
+export default function SignupScreen() {
+  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-
-  const notice = reason === "expired"
-    ? "セッションの有効期限が切れました。もう一度ログインしてください。"
-    : null
 
   const submit = async () => {
     if (!email.trim() || !password) {
@@ -34,10 +30,14 @@ export default function LoginScreen() {
     setError(null)
 
     try {
-      await loginWithPassword(email.trim().toLowerCase(), password)
+      await signupWithPassword({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+      })
       router.replace("/(tabs)")
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "ログインに失敗しました。")
+      setError(requestError instanceof Error ? requestError.message : "登録に失敗しました。")
     } finally {
       setSubmitting(false)
     }
@@ -50,12 +50,20 @@ export default function LoginScreen() {
     >
       <View style={styles.card}>
         <Text style={styles.eyebrow}>memorizar mobile</Text>
-        <Text style={styles.title}>ログイン</Text>
-        <Text style={styles.subtitle}>Web版と同じアカウントで利用できます。</Text>
-
-        {notice ? <Text style={styles.noticeText}>{notice}</Text> : null}
+        <Text style={styles.title}>新規登録</Text>
+        <Text style={styles.subtitle}>登録後はそのまま mobile アプリを使い始められます。</Text>
 
         <View style={styles.form}>
+          <View>
+            <Text style={styles.label}>名前</Text>
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              placeholder="任意"
+              style={styles.input}
+            />
+          </View>
+
           <View>
             <Text style={styles.label}>メールアドレス</Text>
             <TextInput
@@ -75,7 +83,7 @@ export default function LoginScreen() {
               secureTextEntry
               value={password}
               onChangeText={setPassword}
-              placeholder="********"
+              placeholder="8文字以上"
               style={styles.input}
             />
           </View>
@@ -87,14 +95,14 @@ export default function LoginScreen() {
           {submitting ? (
             <ActivityIndicator color="#ffffff" />
           ) : (
-            <Text style={styles.submitText}>ログインする</Text>
+            <Text style={styles.submitText}>登録してはじめる</Text>
           )}
         </Pressable>
 
         <View style={styles.footerRow}>
-          <Text style={styles.footerText}>アカウントをお持ちでないですか？</Text>
-          <Pressable onPress={() => router.push("/signup")}>
-            <Text style={styles.footerLink}>新規登録</Text>
+          <Text style={styles.footerText}>すでにアカウントをお持ちですか？</Text>
+          <Pressable onPress={() => router.replace("/login")}>
+            <Text style={styles.footerLink}>ログイン</Text>
           </Pressable>
         </View>
       </View>
@@ -137,16 +145,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: "#475569",
-  },
-  noticeText: {
-    marginTop: 16,
-    borderRadius: 14,
-    backgroundColor: "#fff7ed",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#c2410c",
   },
   form: {
     marginTop: 24,

@@ -41,7 +41,7 @@ export default function ReviewScreen() {
       .catch(async (error: unknown) => {
         if (isUnauthorizedError(error)) {
           await clearSessionToken()
-          router.replace("/login")
+          router.replace("/login?reason=expired")
           return
         }
 
@@ -72,7 +72,7 @@ export default function ReviewScreen() {
     } catch (error) {
       if (isUnauthorizedError(error)) {
         await clearSessionToken()
-        router.replace("/login")
+        router.replace("/login?reason=expired")
         return
       }
 

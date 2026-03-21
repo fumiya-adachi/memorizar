@@ -23,7 +23,7 @@ export default function IndexScreen() {
         router.replace("/(tabs)")
       } catch {
         await clearSessionToken()
-        router.replace("/login")
+        router.replace("/login?reason=expired")
       } finally {
         setLoading(false)
       }
