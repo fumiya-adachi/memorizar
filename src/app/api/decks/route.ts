@@ -3,6 +3,47 @@ import { prisma } from "@/lib/prisma"
 import { getApiUser } from "@/lib/apiAuth"
 import type { DeckSummary } from "@memorizar/shared"
 
+export async function POST(request: Request) {
+  const user = await getApiUser(request)
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const body = await request.json()
+  const name = typeof body.name === "string" ? body.name.trim() : ""
+  if (!name) {
+    return NextResponse.json({ error: "名前は必須です" }, { status: 400 })
+  }
+
+  const existing = await prisma.deck.findUnique({
+    where: { userId_name: { userId: user.id, name } },
+  })
+  if (existing) {
+    return NextResponse.json({ error: "同じ名前の単語帳が既に存在します" }, { status: 400 })
+  }
+
+  const deck = await prisma.deck.create({
+    data: {
+      userId: user.id,
+      name,
+      questionLanguage: body.questionLanguage || null,
+      answerLanguage: body.answerLanguage || null,
+    },
+  })
+
+  const summary: DeckSummary = {
+    id: deck.id,
+    name: deck.name,
+    questionLanguage: deck.questionLanguage,
+    answerLanguage: deck.answerLanguage,
+    cardCount: 0,
+    sourceDeckId: null,
+    createdAt: deck.createdAt.toISOString(),
+  }
+
+  return NextResponse.json(summary, { status: 201 })
+}
+
 export async function GET(request: Request) {
   const user = await getApiUser(request)
   if (!user) {
