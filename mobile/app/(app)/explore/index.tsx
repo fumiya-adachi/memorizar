@@ -9,22 +9,24 @@ import {
   View,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { useFocusEffect } from "expo-router"
+import { useFocusEffect, useRouter } from "expo-router"
 import type { DeckSummary } from "@memorizar/shared"
 import { fetchPublicDecks } from "../../../src/api/decks"
 
-function DeckRow({ deck }: { deck: DeckSummary }) {
+function DeckRow({ deck, onPress }: { deck: DeckSummary; onPress: () => void }) {
   return (
-    <View style={styles.row}>
+    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.rowMain}>
         <Text style={styles.deckName} numberOfLines={1}>{deck.name}</Text>
         <Text style={styles.deckMeta}>{deck.cardCount} cards</Text>
       </View>
-    </View>
+      <Text style={styles.rowChevron}>›</Text>
+    </TouchableOpacity>
   )
 }
 
 export default function ExploreScreen() {
+  const router = useRouter()
   const [decks, setDecks] = useState<DeckSummary[]>([])
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
@@ -86,7 +88,9 @@ export default function ExploreScreen() {
               {query ? "該当する単語帳がありません" : "公開されている単語帳がありません"}
             </Text>
           }
-          renderItem={({ item }) => <DeckRow deck={item} />}
+          renderItem={({ item }) => (
+            <DeckRow deck={item} onPress={() => router.push(`/(app)/explore/${item.id}`)} />
+          )}
         />
       )}
     </SafeAreaView>
@@ -122,6 +126,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   rowMain: { flex: 1, gap: 2 },
+  rowChevron: { fontSize: 20, color: "#d1d5db", marginLeft: 8 },
   deckName: { fontSize: 15, fontWeight: "600", color: "#111827" },
   deckMeta: { fontSize: 13, color: "#6b7280" },
   emptyText: { fontSize: 14, color: "#9ca3af" },

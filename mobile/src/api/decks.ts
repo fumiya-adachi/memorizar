@@ -35,6 +35,27 @@ export async function fetchDeckProgress(id: number): Promise<DeckProgress> {
   return apiRequest<DeckProgress>(`/api/decks/${id}/progress`)
 }
 
+export type PublicDeckDetail = {
+  id: number
+  name: string
+  questionLanguage: string | null
+  answerLanguage: string | null
+  cardCount: number
+  cards: { id: number; question: string; answer: string; description: string | null }[]
+  alreadyImported: boolean
+  importedDeckId: number | null
+}
+
+export async function fetchPublicDeck(id: number): Promise<PublicDeckDetail> {
+  return apiRequest<PublicDeckDetail>(`/api/decks/${id}/public`)
+}
+
+export async function importDeck(sourceDeckId: number): Promise<DeckSummary> {
+  return apiRequest<DeckSummary>(`/api/decks/${sourceDeckId}/import`, {
+    method: "POST",
+  })
+}
+
 export async function deleteDeck(id: number): Promise<void> {
   const token = await SecureStore.getItemAsync(TOKEN_KEY)
   const res = await fetch(`${BASE_URL}/api/decks/${id}`, {
