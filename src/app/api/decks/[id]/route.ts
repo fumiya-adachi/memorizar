@@ -18,12 +18,20 @@ export async function DELETE(request: Request, { params }: Params) {
 
   const deck = await prisma.deck.findFirst({
     where: { id: deckId, userId: user.id },
+    include: { flashcards: { select: { id: true } } },
   })
   if (!deck) {
     return NextResponse.json({ error: "Deck not found" }, { status: 404 })
   }
 
-  await prisma.deck.delete({ where: { id: deckId } })
+  const cardIds = deck.flashcards.map((c) => c.id)
+
+  await prisma.$transaction([
+    prisma.reviewHistory.deleteMany({ where: { cardId: { in: cardIds } } }),
+    prisma.flashCardProgress.deleteMany({ where: { cardId: { in: cardIds } } }),
+    prisma.flashCard.deleteMany({ where: { deckId } }),
+    prisma.deck.delete({ where: { id: deckId } }),
+  ])
 
   return new NextResponse(null, { status: 204 })
 }

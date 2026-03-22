@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
+import { useFocusEffect } from "expo-router"
 import {
   Alert,
   ActivityIndicator,
@@ -62,9 +63,7 @@ export default function DecksScreen() {
     }
   }, [])
 
-  useEffect(() => {
-    loadDecks()
-  }, [loadDecks])
+  useFocusEffect(useCallback(() => { loadDecks() }, [loadDecks]))
 
   const filteredDecks = useMemo(() => {
     let result = [...decks]
