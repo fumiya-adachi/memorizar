@@ -130,14 +130,7 @@ export default function DecksScreen() {
     <SafeAreaView style={styles.screen}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>単語帳一覧</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.createBtn} onPress={() => setShowCreate(true)}>
-            <Text style={styles.createBtnText}>+ 作成</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={signOut}>
-            <Text style={styles.logoutText}>ログアウト</Text>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -157,48 +150,6 @@ export default function DecksScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
-
-        {/* Sort & Within */}
-        <View style={styles.filterRow}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.filterRowInner}>
-              {SORT_OPTIONS.map((opt) => (
-                <TouchableOpacity
-                  key={opt.value}
-                  style={[styles.chip, sortFilter === opt.value && styles.chipActive]}
-                  onPress={() => setSortFilter(opt.value)}
-                >
-                  <Text style={[styles.chipText, sortFilter === opt.value && styles.chipTextActive]}>
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              {CREATED_WITHIN_OPTIONS.map((opt) => (
-                <TouchableOpacity
-                  key={opt.value}
-                  style={[styles.chip, withinFilter === opt.value && styles.chipActive]}
-                  onPress={() => setWithinFilter(opt.value)}
-                >
-                  <Text style={[styles.chipText, withinFilter === opt.value && styles.chipTextActive]}>
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              {isFiltered && (
-                <TouchableOpacity
-                  style={styles.resetChip}
-                  onPress={() => {
-                    setLangFilter("all")
-                    setSortFilter("newest")
-                    setWithinFilter("all")
-                  }}
-                >
-                  <Text style={styles.resetChipText}>リセット</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </ScrollView>
-        </View>
       </View>
 
       {/* List */}
@@ -233,6 +184,11 @@ export default function DecksScreen() {
           )}
         />
       )}
+
+      {/* FAB */}
+      <TouchableOpacity style={styles.fab} onPress={() => setShowCreate(true)}>
+        <Text style={styles.fabText}>＋</Text>
+      </TouchableOpacity>
 
       {/* Create Modal */}
       <Modal visible={showCreate} animationType="slide" transparent>
@@ -390,4 +346,21 @@ const styles = StyleSheet.create({
     color: "#111827",
     backgroundColor: "#f9fafb",
   },
+  fab: {
+    position: "absolute",
+    bottom: 32,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#111827",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  fabText: { fontSize: 28, color: "#ffffff", lineHeight: 32 },
 })
