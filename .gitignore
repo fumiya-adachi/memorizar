@@ -2,6 +2,14 @@
 
 # dependencies
 /node_modules
+mobile/node_modules
+packages/*/node_modules
+
+# expo
+mobile/.expo/
+mobile/dist/
+mobile/ios/
+mobile/android/
 /.pnp
 .pnp.*
 .yarn/*
