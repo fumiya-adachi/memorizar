@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { useLocalSearchParams, useRouter } from "expo-router"
+import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { type ReviewCardData } from "@memorizar/shared"
 import { fetchReviewCards, markResult } from "../../../../src/api/review"
 
@@ -244,6 +244,7 @@ export default function ReviewScreen() {
 
   return (
     <SafeAreaView style={styles.screen} edges={["bottom", "left", "right"]}>
+      <Stack.Screen options={{ title: cards[0]?.deckName ?? "復習" }} />
       <ProgressBar current={currentIndex + 1} total={cards.length} />
 
       <SwipeableCard

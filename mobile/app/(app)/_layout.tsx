@@ -12,7 +12,7 @@ export default function AppLayout() {
     <Stack>
       <Stack.Screen name="decks/index" options={{ title: "単語帳一覧" }} />
       <Stack.Screen name="decks/[id]/index" options={{ title: "単語帳詳細", headerBackButtonDisplayMode: "minimal" }} />
-      <Stack.Screen name="decks/[id]/review" options={{ title: "復習", headerShown: false }} />
+      <Stack.Screen name="decks/[id]/review" options={{ title: "復習", headerBackButtonDisplayMode: "minimal" }} />
     </Stack>
   )
 }
