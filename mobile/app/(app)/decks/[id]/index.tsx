@@ -1,16 +1,108 @@
 import { useCallback, useEffect, useState } from "react"
 import {
   ActivityIndicator,
-  FlatList,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native"
+import { SafeAreaView } from "react-native-safe-area-context"
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { getLanguageLabel, type DeckSummary } from "@memorizar/shared"
 import { fetchMyDecks } from "../../../../src/api/decks"
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type ProgressInfo = {
+  todayCount: number
+  reviewedCount: number
+  lastStudied: string
+}
+
+// ─── Hardcoded progress (replace with API later) ──────────────────────────────
+// TODO: APIから取得した進捗情報を表示するように実装する
+const MOCK_PROGRESS: ProgressInfo = {
+  todayCount: 18,
+  reviewedCount: 72,
+  lastStudied: "昨日",
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function InfoSection({ deck }: { deck: DeckSummary }) {
+  return (
+    <View style={styles.section}>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>学習言語</Text>
+        <Text style={styles.infoValue}>{getLanguageLabel(deck.questionLanguage)}</Text>
+      </View>
+      <View style={styles.divider} />
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>カード数</Text>
+        <Text style={styles.infoValue}>{deck.cardCount} cards</Text>
+      </View>
+    </View>
+  )
+}
+
+function ProgressSection({ deck, progress }: { deck: DeckSummary; progress: ProgressInfo }) {
+  const ratio = deck.cardCount > 0 ? progress.reviewedCount / deck.cardCount : 0
+  const percent = Math.round(ratio * 100)
+
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>進捗</Text>
+
+      <View style={styles.progressBarTrack}>
+        <View style={[styles.progressBarFill, { width: `${percent}%` }]} />
+      </View>
+
+      <View style={styles.progressMeta}>
+        <Text style={styles.progressCount}>
+          {progress.reviewedCount} / {deck.cardCount}
+        </Text>
+        <Text style={styles.progressPercent}>{percent}%</Text>
+      </View>
+
+      <View style={styles.infoRow} >
+        <Text style={styles.infoLabel}>今日の復習</Text>
+        <Text style={styles.infoValue}>{progress.todayCount} cards</Text>
+      </View>
+      <View style={styles.divider} />
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>最終学習日</Text>
+        <Text style={styles.infoValue}>{progress.lastStudied}</Text>
+      </View>
+    </View>
+  )
+}
+
+function ActionSection({
+  onReview,
+  onWordList,
+  onEdit,
+}: {
+  onReview: () => void
+  onWordList: () => void
+  onEdit: () => void
+}) {
+  return (
+    <View style={styles.actionSection}>
+      <TouchableOpacity style={styles.primaryButton} onPress={onReview}>
+        <Text style={styles.primaryButtonText}>復習する</Text>
+      </TouchableOpacity>
+
+      <View style={styles.subActions}>
+        <View style={styles.subDivider} />
+        <TouchableOpacity style={styles.subButton} onPress={onEdit}>
+          <Text style={styles.subButtonText}>編集する</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  )
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function DeckDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -26,8 +118,7 @@ export default function DeckDetailScreen() {
       setIsLoading(true)
       setError(null)
       const decks = await fetchMyDecks()
-      const found = decks.find((d) => d.id === deckId) ?? null
-      setDeck(found)
+      setDeck(decks.find((d) => d.id === deckId) ?? null)
     } catch (e) {
       setError(e instanceof Error ? e.message : "読み込みに失敗しました")
     } finally {
@@ -41,7 +132,7 @@ export default function DeckDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["bottom", "left", "right"]}>
         <ActivityIndicator size="large" color="#111827" />
       </SafeAreaView>
     )
@@ -49,39 +140,31 @@ export default function DeckDetailScreen() {
 
   if (error || !deck) {
     return (
-      <SafeAreaView style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["bottom", "left", "right"]}>
         <Text style={styles.errorText}>{error ?? "単語帳が見つかりません"}</Text>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>← 戻る</Text>
-        </TouchableOpacity>
       </SafeAreaView>
     )
   }
 
   return (
-    <SafeAreaView style={styles.screen}>
-      <Stack.Screen options={{ title: deck.name }} />
-      {/* <View style={styles.deckCard}>
-        <Text style={styles.deckName}>{deck.name}</Text>
-        <View style={styles.metaRow}>
-          <Text style={styles.metaText}>
-            学習言語: {getLanguageLabel(deck.questionLanguage)}
-          </Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{deck.cardCount} cards</Text>
-          </View>
-        </View>
-      </View> */}
+    <SafeAreaView style={styles.screen} edges={["bottom", "left", "right"]}>
+      <Stack.Screen options={{ title: deck.name, headerBackButtonDisplayMode: "minimal" }} />
 
-      <TouchableOpacity
-        style={styles.reviewButton}
-        onPress={() => router.push(`/(app)/decks/${deck.id}/review`)}
-      >
-        <Text style={styles.reviewButtonText}>復習を開始する</Text>
-      </TouchableOpacity>
+      <View style={styles.content}>
+        <InfoSection deck={deck} />
+        <ProgressSection deck={deck} progress={MOCK_PROGRESS} />
+      </View>
+
+      <ActionSection
+        onReview={() => router.push(`/(app)/decks/${deck.id}/review`)}
+        onWordList={() => {}}
+        onEdit={() => {}}
+      />
     </SafeAreaView>
   )
 }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   screen: {
@@ -92,82 +175,113 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
     backgroundColor: "#f9fafb",
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  content: {
+    flex: 1,
+    padding: 16,
+    gap: 12,
   },
-  backText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#6b7280",
-  },
-  deckCard: {
+  section: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
-    padding: 20,
-    margin: 16,
+    padding: 16,
+    gap: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
   },
-  deckName: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 12,
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#6b7280",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
-  metaRow: {
+  infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  metaText: {
+  infoLabel: {
     fontSize: 14,
     color: "#6b7280",
   },
-  badge: {
+  infoValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#f3f4f6",
+  },
+  progressBarTrack: {
+    height: 8,
     backgroundColor: "#f3f4f6",
     borderRadius: 99,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    overflow: "hidden",
   },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#374151",
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: "#111827",
+    borderRadius: 99,
   },
-  reviewButton: {
+  progressMeta: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  progressCount: {
+    fontSize: 13,
+    color: "#6b7280",
+  },
+  progressPercent: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  actionSection: {
+    padding: 16,
+    gap: 12,
+  },
+  primaryButton: {
     backgroundColor: "#111827",
     borderRadius: 14,
     paddingVertical: 16,
-    marginHorizontal: 16,
     alignItems: "center",
   },
-  reviewButtonText: {
+  primaryButtonText: {
     color: "#ffffff",
-    fontWeight: "700",
     fontSize: 17,
+    fontWeight: "700",
+  },
+  subActions: {
+    flexDirection: "row",
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  subButton: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  subButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  subDivider: {
+    width: 1,
+    backgroundColor: "#e5e7eb",
   },
   errorText: {
     fontSize: 15,
     color: "#dc2626",
     textAlign: "center",
-    marginBottom: 16,
-  },
-  backButton: {
-    padding: 8,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    alignSelf: "flex-start",
-  },
-  backArrow: {
-    fontSize: 36,
-    color: "#111827",
-    lineHeight: 36,
   },
 })
