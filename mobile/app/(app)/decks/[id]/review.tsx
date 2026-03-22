@@ -205,6 +205,21 @@ export default function ReviewScreen() {
       if (isCorrect) setCorrectCount((n) => n + 1)
       else setIncorrectCount((n) => n + 1)
 
+      // card.progress をローカルで即時反映
+      setCards((prev) =>
+        prev.map((c) => {
+          if (c.id !== card.id) return c
+          const p = c.progress ?? { correctCount: 0, reviewCount: 0 }
+          return {
+            ...c,
+            progress: {
+              correctCount: p.correctCount + (isCorrect ? 1 : 0),
+              reviewCount: p.reviewCount + 1,
+            },
+          }
+        })
+      )
+
       setCurrentIndex((i) => (i < cards.length - 1 ? i + 1 : 0))
     },
     [cards, currentIndex]
@@ -247,12 +262,22 @@ export default function ReviewScreen() {
       <Stack.Screen options={{ title: cards[0]?.deckName ?? "復習" }} />
       <ProgressBar current={currentIndex + 1} total={cards.length} />
 
-      <SwipeableCard
-        key={card.id}
-        card={card}
-        onCorrect={() => handleResult(true)}
-        onIncorrect={() => handleResult(false)}
-      />
+      <View style={styles.cardWrapper}>
+        <SwipeableCard
+          key={card.id}
+          card={card}
+          onCorrect={() => handleResult(true)}
+          onIncorrect={() => handleResult(false)}
+        />
+        <Text style={styles.sessionStats}>
+          {(() => {
+            const p = card.progress
+            const reviewCount = p?.reviewCount ?? 0
+            const rate = reviewCount > 0 ? Math.round(((p?.correctCount ?? 0) / reviewCount) * 100) : 0
+            return `正答率: ${rate}% / 復習回数: ${reviewCount}`
+          })()}
+        </Text>
+      </View>
 
       <HintBar correct={correctCount} incorrect={incorrectCount} />
     </SafeAreaView>
@@ -430,5 +455,15 @@ const styles = StyleSheet.create({
   retryText: {
     color: "#ffffff",
     fontWeight: "600",
+  },
+  sessionStats: {
+    textAlign: "center",
+    fontSize: 13,
+    color: "#9ca3af",
+    paddingTop: 16,
+  },
+  cardWrapper: {
+    flex: 1,
+    justifyContent: "center",
   },
 })
