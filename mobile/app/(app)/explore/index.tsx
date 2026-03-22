@@ -52,11 +52,7 @@ export default function ExploreScreen() {
     : decks
 
   return (
-    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>探す</Text>
-      </View>
-
+    <SafeAreaView style={styles.screen} edges={["bottom", "left", "right"]}>
       <View style={styles.searchBar}>
         <TextInput
           style={styles.searchInput}
@@ -99,8 +95,7 @@ export default function ExploreScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#f9fafb" },
-  header: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 },
-  title: { fontSize: 28, fontWeight: "700", color: "#111827" },
+
   searchBar: { paddingHorizontal: 12, paddingVertical: 8 },
   searchInput: {
     backgroundColor: "#ffffff",
