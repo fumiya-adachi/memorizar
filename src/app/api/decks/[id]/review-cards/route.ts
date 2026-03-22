@@ -29,14 +29,14 @@ export async function GET(request: Request, { params }: Params) {
     take: 1,
   } as const
 
-  const isImportedDeck = deck.sourceDeckId !== null
-
-  let rawCards: Awaited<ReturnType<typeof loadCards>>
+  const resolvedDeck = deck
+  const resolvedUser = user
+  const isImportedDeck = resolvedDeck.sourceDeckId !== null
 
   async function loadCards() {
     if (isImportedDeck) {
       const localCards = await prisma.flashCard.findMany({
-        where: { deckId: deck.id, userId: user.id },
+        where: { deckId: resolvedDeck.id, userId: resolvedUser.id },
         include: { deck: true, progress: progressInclude },
       })
 
@@ -46,7 +46,7 @@ export async function GET(request: Request, { params }: Params) {
 
       const sourceCards = await prisma.flashCard.findMany({
         where: {
-          deckId: deck.sourceDeckId!,
+          deckId: resolvedDeck.sourceDeckId!,
           ...(overriddenSourceCardIds.length > 0
             ? { id: { notIn: overriddenSourceCardIds } }
             : {}),
@@ -58,21 +58,21 @@ export async function GET(request: Request, { params }: Params) {
     }
 
     return prisma.flashCard.findMany({
-      where: { deckId: deck.id },
+      where: { deckId: resolvedDeck.id },
       include: { deck: true, progress: progressInclude },
     })
   }
 
-  rawCards = await loadCards()
+  const rawCards = await loadCards()
 
   const cards: ReviewCardData[] = rawCards.map((card) => ({
     id: card.id,
     question: card.question,
     answer: card.answer,
     description: card.description,
-    deckName: deck.name,
-    questionLanguage: deck.questionLanguage ?? card.deck.questionLanguage,
-    answerLanguage: deck.answerLanguage ?? card.deck.answerLanguage,
+    deckName: resolvedDeck.name,
+    questionLanguage: resolvedDeck.questionLanguage ?? card.deck.questionLanguage,
+    answerLanguage: resolvedDeck.answerLanguage ?? card.deck.answerLanguage,
     progress: card.progress[0]
       ? {
           correctCount: card.progress[0].correctCount,
