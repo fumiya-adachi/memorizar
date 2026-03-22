@@ -22,6 +22,13 @@ export type ReviewCardData = {
   } | null
 }
 
+export type CardData = {
+  id: number
+  question: string
+  answer: string
+  description: string | null
+}
+
 export type AccuracyFilter = "all" | "unlearned" | "low" | "mid" | "high"
 
 export const ACCURACY_FILTER_OPTIONS: { value: AccuracyFilter; label: string }[] = [

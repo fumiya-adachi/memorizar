@@ -250,7 +250,7 @@ export default function DeckDetailScreen() {
         selectedFilter={selectedFilter}
         onSelectFilter={setSelectedFilter}
         onReview={() => router.push(`/(app)/decks/${deck.id}/review?filter=${selectedFilter}`)}
-        onEdit={() => {}}
+        onEdit={() => router.push(`/(app)/decks/${deck.id}/cards`)}
       />
     </SafeAreaView>
   )
