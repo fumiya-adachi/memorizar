@@ -9,22 +9,17 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { getLanguageLabel, type DeckSummary } from "@memorizar/shared"
-import { fetchMyDecks } from "../../../../src/api/decks"
+import { fetchMyDecks, fetchDeckProgress, type DeckProgress } from "../../../../src/api/decks"
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-type ProgressInfo = {
-  todayCount: number
-  reviewedCount: number
-  lastStudied: string
-}
-
-// ─── Hardcoded progress (replace with API later) ──────────────────────────────
-// TODO: APIから取得した進捗情報を表示するように実装する
-const MOCK_PROGRESS: ProgressInfo = {
-  todayCount: 18,
-  reviewedCount: 72,
-  lastStudied: "昨日",
+function formatLastStudied(isoDate: string | null): string {
+  if (!isoDate) return "未学習"
+  const diff = Date.now() - new Date(isoDate).getTime()
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  if (days === 0) return "今日"
+  if (days === 1) return "昨日"
+  return `${days}日前`
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -45,7 +40,7 @@ function InfoSection({ deck }: { deck: DeckSummary }) {
   )
 }
 
-function ProgressSection({ deck, progress }: { deck: DeckSummary; progress: ProgressInfo }) {
+function ProgressSection({ deck, progress }: { deck: DeckSummary; progress: DeckProgress }) {
   const ratio = deck.cardCount > 0 ? progress.reviewedCount / deck.cardCount : 0
   const percent = Math.round(ratio * 100)
 
@@ -64,14 +59,14 @@ function ProgressSection({ deck, progress }: { deck: DeckSummary; progress: Prog
         <Text style={styles.progressPercent}>{percent}%</Text>
       </View>
 
-      <View style={styles.infoRow} >
+      <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>今日の復習</Text>
         <Text style={styles.infoValue}>{progress.todayCount} cards</Text>
       </View>
       <View style={styles.divider} />
       <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>最終学習日</Text>
-        <Text style={styles.infoValue}>{progress.lastStudied}</Text>
+        <Text style={styles.infoValue}>{formatLastStudied(progress.lastReviewed)}</Text>
       </View>
     </View>
   )
@@ -110,15 +105,20 @@ export default function DeckDetailScreen() {
   const deckId = Number(id)
 
   const [deck, setDeck] = useState<DeckSummary | null>(null)
+  const [progress, setProgress] = useState<DeckProgress | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadDeck = useCallback(async () => {
+  const load = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
-      const decks = await fetchMyDecks()
+      const [decks, prog] = await Promise.all([
+        fetchMyDecks(),
+        fetchDeckProgress(deckId),
+      ])
       setDeck(decks.find((d) => d.id === deckId) ?? null)
+      setProgress(prog)
     } catch (e) {
       setError(e instanceof Error ? e.message : "読み込みに失敗しました")
     } finally {
@@ -127,8 +127,8 @@ export default function DeckDetailScreen() {
   }, [deckId])
 
   useEffect(() => {
-    loadDeck()
-  }, [loadDeck])
+    load()
+  }, [load])
 
   if (isLoading) {
     return (
@@ -138,7 +138,7 @@ export default function DeckDetailScreen() {
     )
   }
 
-  if (error || !deck) {
+  if (error || !deck || !progress) {
     return (
       <SafeAreaView style={styles.center} edges={["bottom", "left", "right"]}>
         <Text style={styles.errorText}>{error ?? "単語帳が見つかりません"}</Text>
@@ -152,7 +152,7 @@ export default function DeckDetailScreen() {
 
       <View style={styles.content}>
         <InfoSection deck={deck} />
-        <ProgressSection deck={deck} progress={MOCK_PROGRESS} />
+        <ProgressSection deck={deck} progress={progress} />
       </View>
 
       <ActionSection
@@ -167,21 +167,9 @@ export default function DeckDetailScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f9fafb",
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-    gap: 12,
-  },
+  screen: { flex: 1, backgroundColor: "#f9fafb" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f9fafb" },
+  content: { flex: 1, padding: 16, gap: 12 },
   section: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
@@ -200,63 +188,23 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#f3f4f6",
-  },
-  progressBarTrack: {
-    height: 8,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 99,
-    overflow: "hidden",
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: "#111827",
-    borderRadius: 99,
-  },
-  progressMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  progressCount: {
-    fontSize: 13,
-    color: "#6b7280",
-  },
-  progressPercent: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  actionSection: {
-    padding: 16,
-    gap: 12,
-  },
+  infoRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  infoLabel: { fontSize: 14, color: "#6b7280" },
+  infoValue: { fontSize: 14, fontWeight: "600", color: "#111827" },
+  divider: { height: 1, backgroundColor: "#f3f4f6" },
+  progressBarTrack: { height: 8, backgroundColor: "#f3f4f6", borderRadius: 99, overflow: "hidden" },
+  progressBarFill: { height: "100%", backgroundColor: "#111827", borderRadius: 99 },
+  progressMeta: { flexDirection: "row", justifyContent: "space-between" },
+  progressCount: { fontSize: 13, color: "#6b7280" },
+  progressPercent: { fontSize: 13, fontWeight: "600", color: "#111827" },
+  actionSection: { padding: 16, gap: 12 },
   primaryButton: {
     backgroundColor: "#111827",
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: "center",
   },
-  primaryButtonText: {
-    color: "#ffffff",
-    fontSize: 17,
-    fontWeight: "700",
-  },
+  primaryButtonText: { color: "#ffffff", fontSize: 17, fontWeight: "700" },
   subActions: {
     flexDirection: "row",
     backgroundColor: "#ffffff",
@@ -265,23 +213,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e5e7eb",
   },
-  subButton: {
-    flex: 1,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  subButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  subDivider: {
-    width: 1,
-    backgroundColor: "#e5e7eb",
-  },
-  errorText: {
-    fontSize: 15,
-    color: "#dc2626",
-    textAlign: "center",
-  },
+  subButton: { flex: 1, paddingVertical: 14, alignItems: "center" },
+  subButtonText: { fontSize: 14, fontWeight: "600", color: "#374151" },
+  subDivider: { width: 1, backgroundColor: "#e5e7eb" },
+  errorText: { fontSize: 15, color: "#dc2626", textAlign: "center" },
 })

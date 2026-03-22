@@ -25,6 +25,16 @@ export async function createDeck(params: {
   })
 }
 
+export type DeckProgress = {
+  reviewedCount: number
+  todayCount: number
+  lastReviewed: string | null
+}
+
+export async function fetchDeckProgress(id: number): Promise<DeckProgress> {
+  return apiRequest<DeckProgress>(`/api/decks/${id}/progress`)
+}
+
 export async function deleteDeck(id: number): Promise<void> {
   const token = await SecureStore.getItemAsync(TOKEN_KEY)
   const res = await fetch(`${BASE_URL}/api/decks/${id}`, {
