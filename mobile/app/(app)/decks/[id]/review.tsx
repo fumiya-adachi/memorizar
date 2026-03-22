@@ -35,21 +35,24 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
 
 // ─── HintBar ──────────────────────────────────────────────────────────────────
 
-function HintBar({ correct, incorrect }: { correct: number; incorrect: number }) {
+function HintBar({
+  onCorrect,
+  onIncorrect,
+}: {
+  onCorrect: () => void
+  onIncorrect: () => void
+}) {
   return (
     <View style={styles.hintBar}>
-      <View style={styles.hintSide}>
+      <TouchableOpacity style={styles.hintButton} onPress={onIncorrect}>
         <Text style={styles.hintIcon}>←</Text>
-        <Text style={styles.hintLabel}>不正解</Text>
-      </View>
-      <View style={styles.statsBox}>
-        <Text style={styles.statIncorrect}>✗ {incorrect}</Text>
-        <Text style={styles.statCorrect}>✓ {correct}</Text>
-      </View>
-      <View style={[styles.hintSide, styles.hintSideRight]}>
-        <Text style={styles.hintLabel}>正解</Text>
+        <Text style={[styles.hintLabel, styles.hintLabelIncorrect]}>不正解</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.hintButton, styles.hintButtonRight]} onPress={onCorrect}>
+        <Text style={[styles.hintLabel, styles.hintLabelCorrect]}>正解</Text>
         <Text style={styles.hintIcon}>→</Text>
-      </View>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -174,8 +177,7 @@ export default function ReviewScreen() {
 
   const [cards, setCards] = useState<ReviewCardData[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [correctCount, setCorrectCount] = useState(0)
-  const [incorrectCount, setIncorrectCount] = useState(0)
+
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -201,9 +203,6 @@ export default function ReviewScreen() {
       if (!card) return
 
       await markResult(card.id, isCorrect).catch(() => {})
-
-      if (isCorrect) setCorrectCount((n) => n + 1)
-      else setIncorrectCount((n) => n + 1)
 
       // card.progress をローカルで即時反映
       setCards((prev) =>
@@ -279,7 +278,10 @@ export default function ReviewScreen() {
         </Text>
       </View>
 
-      <HintBar correct={correctCount} incorrect={incorrectCount} />
+      <HintBar
+        onCorrect={() => handleResult(true)}
+        onIncorrect={() => handleResult(false)}
+      />
     </SafeAreaView>
   )
 }
@@ -398,26 +400,36 @@ const styles = StyleSheet.create({
   hintBar: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 32,
-    paddingVertical: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
   },
-  hintSide: {
+  hintButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: "#fee2e2",
   },
-  hintSideRight: {
-    flexDirection: "row-reverse",
+  hintButtonRight: {
+    backgroundColor: "#dcfce7",
   },
   hintIcon: {
-    fontSize: 18,
+    fontSize: 16,
     color: "#6b7280",
   },
   hintLabel: {
-    fontSize: 13,
-    color: "#6b7280",
-    fontWeight: "500",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  hintLabelIncorrect: {
+    color: "#dc2626",
+  },
+  hintLabelCorrect: {
+    color: "#16a34a",
   },
   statsBox: {
     flexDirection: "row",
