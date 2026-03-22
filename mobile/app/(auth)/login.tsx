@@ -18,8 +18,8 @@ export default function LoginScreen() {
   const { signIn } = useAuth()
   const router = useRouter()
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState(__DEV__ ? "demo@example.com" : "")
+  const [password, setPassword] = useState(__DEV__ ? "demo123456" : "")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

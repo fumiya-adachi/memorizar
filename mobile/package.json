@@ -9,6 +9,7 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
     "@memorizar/shared": "file:../packages/shared",
     "expo": "~54.0.33",
     "expo-linking": "~8.0.11",
