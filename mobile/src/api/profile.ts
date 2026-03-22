@@ -1,8 +1,4 @@
-import * as SecureStore from "expo-secure-store"
-import { apiRequest } from "./client"
-
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000"
-const TOKEN_KEY = "memorizar_auth_token"
+import { apiRequest, deleteRequest } from "./client"
 
 export type ProfileSummary = {
   name: string | null
@@ -25,13 +21,5 @@ export async function updateProfile(params: { name?: string; email?: string }): 
 }
 
 export async function deleteAccount(): Promise<void> {
-  const token = await SecureStore.getItemAsync(TOKEN_KEY)
-  const res = await fetch(`${BASE_URL}/api/profile`, {
-    method: "DELETE",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
-    throw new Error(body.error ?? `HTTP ${res.status}`)
-  }
+  return deleteRequest("/api/profile")
 }
