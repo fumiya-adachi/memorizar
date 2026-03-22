@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import {
+  Alert,
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
@@ -13,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native"
+import { Swipeable } from "react-native-gesture-handler"
 import { useRouter } from "expo-router"
 import {
   getLanguageLabel,
@@ -25,7 +27,7 @@ import {
   type SortFilter,
   type CreatedWithinFilter,
 } from "@memorizar/shared"
-import { fetchMyDecks, createDeck } from "../../../src/api/decks"
+import { fetchMyDecks, createDeck, deleteDeck } from "../../../src/api/decks"
 import { useAuth } from "../../../src/context/AuthContext"
 
 export default function DecksScreen() {
@@ -105,6 +107,24 @@ export default function DecksScreen() {
     }
   }
 
+  const handleDelete = (id: number, name: string) => {
+    Alert.alert("単語帳を削除", `「${name}」を削除しますか？`, [
+      { text: "キャンセル", style: "cancel" },
+      {
+        text: "削除",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteDeck(id)
+            setDecks((prev) => prev.filter((d) => d.id !== id))
+          } catch (e) {
+            Alert.alert("エラー", e instanceof Error ? e.message : "削除に失敗しました")
+          }
+        },
+      },
+    ])
+  }
+
   const isFiltered = langFilter !== "all" || withinFilter !== "all" || sortFilter !== "newest"
 
   if (isLoading) {
@@ -165,22 +185,33 @@ export default function DecksScreen() {
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => router.push(`/(app)/decks/${item.id}`)}
+            <Swipeable
+              renderRightActions={() => (
+                <TouchableOpacity
+                  style={styles.deleteAction}
+                  onPress={() => handleDelete(item.id, item.name)}
+                >
+                  <Text style={styles.deleteActionText}>削除</Text>
+                </TouchableOpacity>
+              )}
             >
-              <View style={styles.cardContent}>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.deckName}>{item.name}</Text>
-                  <Text style={styles.deckMeta}>
-                    学習言語: {getLanguageLabel(item.questionLanguage)}
-                  </Text>
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() => router.push(`/(app)/decks/${item.id}`)}
+              >
+                <View style={styles.cardContent}>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.deckName}>{item.name}</Text>
+                    <Text style={styles.deckMeta}>
+                      学習言語: {getLanguageLabel(item.questionLanguage)}
+                    </Text>
+                  </View>
+                  <View style={styles.cardCountBadge}>
+                    <Text style={styles.cardCountText}>{item.cardCount} cards</Text>
+                  </View>
                 </View>
-                <View style={styles.cardCountBadge}>
-                  <Text style={styles.cardCountText}>{item.cardCount} cards</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </Swipeable>
           )}
         />
       )}
@@ -363,4 +394,13 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   fabText: { fontSize: 28, color: "#ffffff", lineHeight: 32 },
+  deleteAction: {
+    backgroundColor: "#dc2626",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+    borderRadius: 16,
+    marginLeft: 8,
+  },
+  deleteActionText: { color: "#ffffff", fontWeight: "700", fontSize: 14 },
 })
