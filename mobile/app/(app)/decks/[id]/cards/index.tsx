@@ -1,6 +1,7 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -9,9 +10,18 @@ import {
   View,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { Swipeable } from "react-native-gesture-handler"
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router"
 import type { CardData } from "@memorizar/shared"
-import { fetchCards } from "../../../../../src/api/cards"
+import { fetchCards, deleteCard } from "../../../../../src/api/cards"
+
+function DeleteAction({ onPress }: { onPress: () => void }) {
+  return (
+    <TouchableOpacity style={styles.deleteAction} onPress={onPress}>
+      <Text style={styles.deleteActionText}>削除</Text>
+    </TouchableOpacity>
+  )
+}
 
 export default function CardListScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -22,6 +32,7 @@ export default function CardListScreen() {
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const swipeableRefs = useRef<Map<number, Swipeable>>(new Map())
 
   const load = useCallback(async () => {
     try {
@@ -37,6 +48,29 @@ export default function CardListScreen() {
   }, [deckId])
 
   useFocusEffect(useCallback(() => { load() }, [load]))
+
+  const handleDelete = useCallback((card: CardData) => {
+    swipeableRefs.current.get(card.id)?.close()
+    Alert.alert(
+      "カードを削除",
+      `「${card.question}」を削除しますか？`,
+      [
+        { text: "キャンセル", style: "cancel" },
+        {
+          text: "削除",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteCard(card.id)
+              setCards((prev) => prev.filter((c) => c.id !== card.id))
+            } catch {
+              Alert.alert("エラー", "削除に失敗しました")
+            }
+          },
+        },
+      ]
+    )
+  }, [])
 
   const filtered = query.trim()
     ? cards.filter(
@@ -82,13 +116,24 @@ export default function CardListScreen() {
           }
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.row}
-              onPress={() => router.push(`/(app)/decks/${deckId}/cards/${item.id}/edit`)}
+            <Swipeable
+              ref={(ref) => {
+                if (ref) swipeableRefs.current.set(item.id, ref)
+                else swipeableRefs.current.delete(item.id)
+              }}
+              renderRightActions={() => (
+                <DeleteAction onPress={() => handleDelete(item)} />
+              )}
+              overshootRight={false}
             >
-              <Text style={styles.question} numberOfLines={1}>{item.question}</Text>
-              <Text style={styles.answer} numberOfLines={1}>{item.answer}</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.row}
+                onPress={() => router.push(`/(app)/decks/${deckId}/cards/${item.id}/edit`)}
+              >
+                <Text style={styles.question} numberOfLines={1}>{item.question}</Text>
+                <Text style={styles.answer} numberOfLines={1}>{item.answer}</Text>
+              </TouchableOpacity>
+            </Swipeable>
           )}
         />
       )}
@@ -137,6 +182,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   retryText: { color: "#ffffff", fontWeight: "600" },
+  deleteAction: {
+    backgroundColor: "#dc2626",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+  },
+  deleteActionText: { color: "#ffffff", fontWeight: "700", fontSize: 14 },
   fab: {
     position: "absolute",
     right: 20,
