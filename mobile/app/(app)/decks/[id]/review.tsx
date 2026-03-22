@@ -11,7 +11,7 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
-import { type ReviewCardData } from "@memorizar/shared"
+import { matchesAccuracyFilter, type AccuracyFilter, type ReviewCardData } from "@memorizar/shared"
 import { fetchReviewCards, markResult } from "../../../../src/api/review"
 
 const SWIPE_THRESHOLD = 80
@@ -174,11 +174,13 @@ function SwipeableCard({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function ReviewScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>()
+  const { id, filter } = useLocalSearchParams<{ id: string; filter?: string }>()
   const router = useRouter()
   const deckId = Number(id)
+  const accuracyFilter = (filter ?? "all") as AccuracyFilter
 
-  const [cards, setCards] = useState<ReviewCardData[]>([])
+  const [allCards, setAllCards] = useState<ReviewCardData[]>([])
+  const cards = allCards.filter((c) => matchesAccuracyFilter(c.progress, accuracyFilter))
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const [isLoading, setIsLoading] = useState(true)
@@ -193,7 +195,7 @@ export default function ReviewScreen() {
       setIsLoading(true)
       setError(null)
       const data = await fetchReviewCards(deckId)
-      setCards(data)
+      setAllCards(data)
       // 保存済みインデックスを復元（範囲外なら0）
       const saved = lastIndexMap.get(deckId) ?? 0
       setCurrentIndex(saved < data.length ? saved : 0)
@@ -224,7 +226,7 @@ export default function ReviewScreen() {
       await markResult(card.id, isCorrect).catch(() => {})
 
       // card.progress をローカルで即時反映
-      setCards((prev) =>
+      setAllCards((prev) =>
         prev.map((c) => {
           if (c.id !== card.id) return c
           const p = c.progress ?? { correctCount: 0, reviewCount: 0 }
@@ -263,9 +265,17 @@ export default function ReviewScreen() {
   }
 
   if (cards.length === 0) {
+    const isFiltered = accuracyFilter !== "all"
     return (
       <SafeAreaView style={styles.center} edges={["bottom", "left", "right"]}>
-        <Text style={styles.emptyText}>このデッキにはまだカードがありません。</Text>
+        <Text style={styles.emptyTitle}>
+          {isFiltered ? "カードがありません" : "カードが登録されていません"}
+        </Text>
+        <Text style={styles.emptyText}>
+          {isFiltered
+            ? "この正答率範囲のカードはなくなりました"
+            : "このデッキにはまだカードがありません"}
+        </Text>
         <TouchableOpacity onPress={() => router.back()} style={styles.retryBtn}>
           <Text style={styles.retryText}>戻る</Text>
         </TouchableOpacity>
@@ -471,11 +481,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 16,
   },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+    textAlign: "center",
+    marginBottom: 8,
+  },
   emptyText: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#6b7280",
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: 24,
   },
   retryBtn: {
     backgroundColor: "#111827",

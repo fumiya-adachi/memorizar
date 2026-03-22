@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import {
   ActivityIndicator,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -8,8 +9,29 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
-import { getLanguageLabel, type DeckSummary } from "@memorizar/shared"
+import {
+  getLanguageLabel,
+  matchesAccuracyFilter,
+  type AccuracyFilter,
+  type DeckSummary,
+  type ReviewCardData,
+} from "@memorizar/shared"
 import { fetchMyDecks, fetchDeckProgress, type DeckProgress } from "../../../../src/api/decks"
+import { fetchReviewCards } from "../../../../src/api/review"
+
+// ─── Types & Constants ────────────────────────────────────────────────────────
+
+type FilterOption = {
+  filter: AccuracyFilter
+  label: string
+}
+
+const FILTER_OPTIONS: FilterOption[] = [
+  { filter: "all",  label: "すべて" },
+  { filter: "low",  label: "0〜50%" },
+  { filter: "mid",  label: "51〜80%" },
+  { filter: "high", label: "81〜100%" },
+]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -73,22 +95,70 @@ function ProgressSection({ deck, progress }: { deck: DeckSummary; progress: Deck
 }
 
 function ActionSection({
+  cards,
+  loadingCards,
+  selectedFilter,
+  onSelectFilter,
   onReview,
-  onWordList,
   onEdit,
 }: {
+  cards: ReviewCardData[]
+  loadingCards: boolean
+  selectedFilter: AccuracyFilter
+  onSelectFilter: (f: AccuracyFilter) => void
   onReview: () => void
-  onWordList: () => void
   onEdit: () => void
 }) {
+  const count = cards.filter((c) => matchesAccuracyFilter(c.progress, selectedFilter)).length
+
   return (
     <View style={styles.actionSection}>
-      <TouchableOpacity style={styles.primaryButton} onPress={onReview}>
-        <Text style={styles.primaryButtonText}>復習する</Text>
+      {/* 復習範囲 */}
+      <View style={styles.rangeSection}>
+        <Text style={styles.rangeTitle}>復習範囲</Text>
+        {loadingCards ? (
+          <ActivityIndicator size="small" color="#111827" style={{ marginTop: 8 }} />
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipRow}
+          >
+            {FILTER_OPTIONS.map((opt) => {
+              const optCount = cards.filter((c) => matchesAccuracyFilter(c.progress, opt.filter)).length
+              const isSelected = selectedFilter === opt.filter
+              const disabled = optCount === 0 && opt.filter !== "all"
+              return (
+                <TouchableOpacity
+                  key={opt.filter}
+                  style={[styles.chip, isSelected && styles.chipSelected, disabled && styles.chipDisabled]}
+                  onPress={() => !disabled && onSelectFilter(opt.filter)}
+                  disabled={disabled}
+                >
+                  <Text style={[styles.chipLabel, isSelected && styles.chipLabelSelected, disabled && styles.chipLabelDisabled]}>
+                    {opt.label}
+                  </Text>
+                  <Text style={[styles.chipCount, isSelected && styles.chipCountSelected, disabled && styles.chipLabelDisabled]}>
+                    {optCount}
+                  </Text>
+                </TouchableOpacity>
+              )
+            })}
+          </ScrollView>
+        )}
+      </View>
+
+      <TouchableOpacity
+        style={[styles.primaryButton, count === 0 && styles.primaryButtonDisabled]}
+        onPress={onReview}
+        disabled={count === 0}
+      >
+        <Text style={styles.primaryButtonText}>
+          復習する（{count} cards）
+        </Text>
       </TouchableOpacity>
 
       <View style={styles.subActions}>
-        <View style={styles.subDivider} />
         <TouchableOpacity style={styles.subButton} onPress={onEdit}>
           <Text style={styles.subButtonText}>編集する</Text>
         </TouchableOpacity>
@@ -109,6 +179,10 @@ export default function DeckDetailScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [reviewCards, setReviewCards] = useState<ReviewCardData[]>([])
+  const [loadingCards, setLoadingCards] = useState(false)
+  const [selectedFilter, setSelectedFilter] = useState<AccuracyFilter>("all")
+
   const load = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -126,9 +200,22 @@ export default function DeckDetailScreen() {
     }
   }, [deckId])
 
+  const loadCards = useCallback(async () => {
+    setLoadingCards(true)
+    try {
+      const data = await fetchReviewCards(deckId)
+      setReviewCards(data)
+    } catch {
+      // ignore
+    } finally {
+      setLoadingCards(false)
+    }
+  }, [deckId])
+
   useEffect(() => {
     load()
-  }, [load])
+    loadCards()
+  }, [load, loadCards])
 
   if (isLoading) {
     return (
@@ -156,8 +243,11 @@ export default function DeckDetailScreen() {
       </View>
 
       <ActionSection
-        onReview={() => router.push(`/(app)/decks/${deck.id}/review`)}
-        onWordList={() => {}}
+        cards={reviewCards}
+        loadingCards={loadingCards}
+        selectedFilter={selectedFilter}
+        onSelectFilter={setSelectedFilter}
+        onReview={() => router.push(`/(app)/decks/${deck.id}/review?filter=${selectedFilter}`)}
         onEdit={() => {}}
       />
     </SafeAreaView>
@@ -197,12 +287,54 @@ const styles = StyleSheet.create({
   progressMeta: { flexDirection: "row", justifyContent: "space-between" },
   progressCount: { fontSize: 13, color: "#6b7280" },
   progressPercent: { fontSize: 13, fontWeight: "600", color: "#111827" },
+  // Action area
   actionSection: { padding: 16, gap: 12 },
+  rangeSection: { gap: 8 },
+  rangeTitle: { fontSize: 13, fontWeight: "600", color: "#6b7280" },
+  chipRow: { flexDirection: "row", gap: 8, paddingVertical: 2 },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 99,
+    borderWidth: 1.5,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#ffffff",
+  },
+  chipSelected: {
+    borderColor: "#111827",
+    backgroundColor: "#111827",
+  },
+  chipDisabled: {
+    opacity: 0.35,
+  },
+  chipLabel: { fontSize: 13, fontWeight: "600", color: "#374151" },
+  chipLabelSelected: { color: "#ffffff" },
+  chipLabelDisabled: { color: "#9ca3af" },
+  chipCount: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#6b7280",
+    backgroundColor: "#f3f4f6",
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 99,
+    overflow: "hidden",
+  },
+  chipCountSelected: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    color: "#ffffff",
+  },
   primaryButton: {
     backgroundColor: "#111827",
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: "center",
+  },
+  primaryButtonDisabled: {
+    backgroundColor: "#d1d5db",
   },
   primaryButtonText: { color: "#ffffff", fontSize: 17, fontWeight: "700" },
   subActions: {
@@ -215,6 +347,5 @@ const styles = StyleSheet.create({
   },
   subButton: { flex: 1, paddingVertical: 14, alignItems: "center" },
   subButtonText: { fontSize: 14, fontWeight: "600", color: "#374151" },
-  subDivider: { width: 1, backgroundColor: "#e5e7eb" },
   errorText: { fontSize: 15, color: "#dc2626", textAlign: "center" },
 })
