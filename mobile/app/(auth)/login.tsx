@@ -3,16 +3,17 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native"
+import { SafeAreaView } from "react-native-safe-area-context"
 import { useRouter } from "expo-router"
 import { useAuth } from "../../src/context/AuthContext"
 import { mobileSignIn } from "../../src/api/auth"
+
 
 export default function LoginScreen() {
   const { signIn } = useAuth()
@@ -44,7 +45,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={["top", "bottom", "left", "right"]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
@@ -88,6 +89,14 @@ export default function LoginScreen() {
             <Text style={styles.buttonText}>ログイン</Text>
           )}
         </TouchableOpacity>
+
+        <Text style={styles.consentText}>
+          ログインすることで、
+          <Text style={styles.consentLink} onPress={() => router.push("/(auth)/terms")}>利用規約</Text>
+          {"および"}
+          <Text style={styles.consentLink} onPress={() => router.push("/(auth)/privacy")}>プライバシーポリシー</Text>
+          に同意したものとみなします。
+        </Text>
       </KeyboardAvoidingView>
     </SafeAreaView>
   )
@@ -151,5 +160,16 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontWeight: "600",
     fontSize: 16,
+  },
+  consentText: {
+    fontSize: 12,
+    color: "#9ca3af",
+    textAlign: "center",
+    marginTop: 20,
+    lineHeight: 18,
+  },
+  consentLink: {
+    color: "#6b7280",
+    textDecorationLine: "underline",
   },
 })
