@@ -29,6 +29,10 @@ export default function ProfileEditScreen() {
   const [error, setError] = useState<string | null>(null)
 
   async function handleSave() {
+    if (!name.trim()) {
+      setError("ユーザー名を入力してください")
+      return
+    }
     if (!email.trim()) {
       setError("メールアドレスは必須です")
       return
@@ -37,7 +41,7 @@ export default function ProfileEditScreen() {
     setIsSaving(true)
     setError(null)
     try {
-      await updateProfile({ name: name.trim() || undefined, email: email.trim() })
+      await updateProfile({ name: name.trim(), email: email.trim() })
       router.back()
     } catch (e) {
       setError(e instanceof Error ? e.message : "保存に失敗しました")

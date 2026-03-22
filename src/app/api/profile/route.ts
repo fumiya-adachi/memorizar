@@ -12,7 +12,24 @@ export async function PUT(request: Request) {
   const name = typeof body.name === "string" ? body.name.trim() : undefined
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : undefined
 
+  // ユーザー名のバリデーション
+  if (name !== undefined) {
+    if (name.length === 0) {
+      return NextResponse.json({ error: "ユーザー名を入力してください" }, { status: 400 })
+    }
+    if (name.length > 30) {
+      return NextResponse.json({ error: "ユーザー名は30文字以内で入力してください" }, { status: 400 })
+    }
+  }
+
+  // メールアドレスのバリデーション
   if (email !== undefined) {
+    if (email.length === 0) {
+      return NextResponse.json({ error: "メールアドレスを入力してください" }, { status: 400 })
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "有効なメールアドレスを入力してください" }, { status: 400 })
+    }
     const existing = await prisma.user.findFirst({
       where: { email, NOT: { id: user.id } },
     })
