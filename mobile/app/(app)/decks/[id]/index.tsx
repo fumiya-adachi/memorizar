@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native"
-import { useLocalSearchParams, useRouter } from "expo-router"
+import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { getLanguageLabel, type DeckSummary } from "@memorizar/shared"
 import { fetchMyDecks } from "../../../../src/api/decks"
 
@@ -60,13 +60,8 @@ export default function DeckDetailScreen() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← 一覧へ戻る</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.deckCard}>
+      <Stack.Screen options={{ title: deck.name }} />
+      {/* <View style={styles.deckCard}>
         <Text style={styles.deckName}>{deck.name}</Text>
         <View style={styles.metaRow}>
           <Text style={styles.metaText}>
@@ -76,7 +71,7 @@ export default function DeckDetailScreen() {
             <Text style={styles.badgeText}>{deck.cardCount} cards</Text>
           </View>
         </View>
-      </View>
+      </View> */}
 
       <TouchableOpacity
         style={styles.reviewButton}
@@ -166,5 +161,13 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    alignSelf: "flex-start",
+  },
+  backArrow: {
+    fontSize: 36,
+    color: "#111827",
+    lineHeight: 36,
   },
 })
