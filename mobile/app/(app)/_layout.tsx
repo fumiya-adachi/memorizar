@@ -61,19 +61,19 @@ export default function AppLayout() {
         tabBarStyle: { borderTopColor: "#e5e7eb" },
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
       }}
-    >
-      <Tabs.Screen
-        name="decks"
-        options={{
-          title: "単語帳",
-          tabBarIcon: ({ focused }) => <IconBook color={focused ? "#111827" : "#9ca3af"} />,
-        }}
-      />
+      >
       <Tabs.Screen
         name="explore"
         options={{
           title: "探す",
           tabBarIcon: ({ focused }) => <IconSearch color={focused ? "#111827" : "#9ca3af"} />,
+        }}
+      />
+      <Tabs.Screen
+        name="decks"
+        options={{
+          title: "単語帳",
+          tabBarIcon: ({ focused }) => <IconBook color={focused ? "#111827" : "#9ca3af"} />,
         }}
       />
       <Tabs.Screen
