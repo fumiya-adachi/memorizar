@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { useFocusEffect } from "expo-router"
 import {
   ActivityIndicator,
   ScrollView,
@@ -214,8 +215,9 @@ export default function DeckDetailScreen() {
 
   useEffect(() => {
     load()
-    loadCards()
-  }, [load, loadCards])
+  }, [load])
+
+  useFocusEffect(useCallback(() => { loadCards() }, [loadCards]))
 
   if (isLoading) {
     return (

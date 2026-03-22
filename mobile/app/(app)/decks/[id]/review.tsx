@@ -17,9 +17,6 @@ import { fetchReviewCards, markResult } from "../../../../src/api/review"
 const SWIPE_THRESHOLD = 80
 const SCREEN_WIDTH = Dimensions.get("window").width
 
-// デッキごとの最後のインデックスをメモリに保持（アプリ起動中に続きから再開）
-const lastIndexMap = new Map<number, number>()
-
 // ─── ProgressBar ──────────────────────────────────────────────────────────────
 
 function ProgressBar({ current, total }: { current: number; total: number }) {
@@ -196,9 +193,7 @@ export default function ReviewScreen() {
       setError(null)
       const data = await fetchReviewCards(deckId)
       setAllCards(data)
-      // 保存済みインデックスを復元（範囲外なら0）
-      const saved = lastIndexMap.get(deckId) ?? 0
-      setCurrentIndex(saved < data.length ? saved : 0)
+      setCurrentIndex(0)
       isLoadedRef.current = true
     } catch (e) {
       setError(e instanceof Error ? e.message : "読み込みに失敗しました")
@@ -211,12 +206,6 @@ export default function ReviewScreen() {
     loadCards()
   }, [loadCards])
 
-  // ロード完了後のインデックス変更のみ保存
-  useEffect(() => {
-    if (isLoadedRef.current) {
-      lastIndexMap.set(deckId, currentIndex)
-    }
-  }, [deckId, currentIndex])
 
   const handleResult = useCallback(
     async (isCorrect: boolean) => {
