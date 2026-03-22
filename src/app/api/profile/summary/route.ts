@@ -24,8 +24,8 @@ export async function GET(request: Request) {
       where: { userId: user.id },
       select: { _count: { select: { flashcards: true } } },
     }),
-    prisma.reviewHistory.count({
-      where: { userId: user.id, createdAt: { gte: todayStart } },
+    prisma.flashCardProgress.count({
+      where: { userId: user.id, lastReviewed: { gte: todayStart } },
     }),
     prisma.flashCardProgress.aggregate({
       where: { userId: user.id },
