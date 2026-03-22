@@ -103,23 +103,27 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>プロフィール</Text>
-      </View>
-
+    <SafeAreaView style={styles.screen} edges={["bottom", "left", "right"]}>
       {isLoading ? (
         <ActivityIndicator style={styles.loader} size="large" color="#111827" />
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
           {summary && (
             <>
-              <UserCard summary={summary} />
               <SummaryCard summary={summary} />
             </>
           )}
 
+          <Text style={styles.sectionLabel}>アカウント</Text>
           <View style={styles.menuCard}>
+            <MenuItem
+              label="プロフィール編集"
+              onPress={() => router.push({
+                pathname: "/(app)/profile/edit",
+                params: { name: summary?.name ?? "", email: summary?.email ?? "" },
+              })}
+            />
+            <View style={styles.menuDivider} />
             <MenuItem label="ログアウト" onPress={handleSignOut} danger />
           </View>
 
@@ -139,8 +143,6 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#f9fafb" },
-  header: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 },
-  title: { fontSize: 28, fontWeight: "700", color: "#111827" },
   loader: { flex: 1 },
   content: { padding: 16, gap: 12 },
 
